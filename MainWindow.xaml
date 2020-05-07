@@ -1,0 +1,28 @@
+﻿<Window x:Class="test_wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:test_wpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="1080px" Width="1920px">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="28*"/>
+            <ColumnDefinition Width="71*"/>
+        </Grid.ColumnDefinitions>
+        <Button Content="Show Image" HorizontalAlignment="Left" Margin="116,804,0,0" VerticalAlignment="Top" Width="356" Height="115" Click="show_image"/>
+        <Image x:Name="MainImage" HorizontalAlignment="Left" Height="657" Margin="116,94,0,0" VerticalAlignment="Top" Width="1139" Grid.ColumnSpan="2" />
+        <ListView x:Name="listView" Grid.Column="1" HorizontalAlignment="Left" Height="825" Margin="823,94,0,0" VerticalAlignment="Top" Width="439" ItemsSource="{Binding Mode=OneWay}" SelectionChanged="listView_SelectionChanged">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding [0]}"/>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding [1]}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button Content="Delete Image" HorizontalAlignment="Left" Margin="508,804,0,0" VerticalAlignment="Top" Width="357" Height="115" Click="delete_image" Grid.ColumnSpan="2"/>
+        <Button x:Name="GrayButton" Content="Gray Image" HorizontalAlignment="Left" Margin="357,804,0,0" VerticalAlignment="Top" Width="357" Height="115" Click="grayscale_image" Grid.Column="1"/>
+
+    </Grid>
+</Window>
