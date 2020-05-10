@@ -31,6 +31,7 @@ namespace test_wpf
         public const short SHOW_IMAGE_TASK= 1;
         public const short DELETE_IMAGE_TASK = 2;
         public const short GRAY_IMAGE_TASK = 3;
+        public const short HUE_IMAGE_TASK = 4;
 
     }
 
@@ -120,6 +121,8 @@ namespace test_wpf
                     String origin_image_path = "C:\\Users\\owner\\Pictures\\shizuoka_outlet.jpg";
 
                     Mat mat = Cv2.ImRead(origin_image_path);
+                    /* 処理コストのために画素数を1/4にする */
+                    Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
                     //Mat matGray = mat.CvtColor(ColorConversionCodes.BGR2GRAY);
 
                     // gamma補正値 2.2
@@ -127,8 +130,8 @@ namespace test_wpf
                     double LtoGamma = 1 / 2.2;
                     unsafe
                     {
-                        MatForeachFunctionVec3b del_func;
-                        del_func = delegate (Vec3b* px, int* position)
+                        MatForeachFunctionVec3b del_grayscale_func;
+                        del_grayscale_func = delegate (Vec3b* px, int* position)
                         {
                             // BGRを逆ガンマ補正（低輝度部分の差は捨てる）
                             double lpx_b = Math.Pow((double)px->Item0 / 255.0, 2.2) * 255;
@@ -163,12 +166,12 @@ namespace test_wpf
 
                             }
                         };
-                        mat.ForEachAsVec3b(del_func);
+                        mat.ForEachAsVec3b(del_grayscale_func);
 
                     };
 
-                    byte[] image_bytes = new byte[mat.Total()];
-                    Marshal.Copy(mat.Data, image_bytes, 0, image_bytes.Length);
+                    //byte[] image_bytes = new byte[mat.Total()];
+                    //Marshal.Copy(mat.Data, image_bytes, 0, image_bytes.Length);
                     Cv2.ImWrite(grayscale_image_path, mat);
 
                     //lock less bitmap
@@ -202,9 +205,106 @@ namespace test_wpf
             }
 
         }
+        private void hue_image(object sender, RoutedEventArgs e)
+        {
+            HueButton.IsEnabled = false;
+            this.task_flag = Constants.HUE_IMAGE_TASK;
+            try
+            {
+
+                String base_image_path = "C:\\Users\\owner\\source\\repos\\test_wpf\\Resources\\base_image.jpeg";
+                String origin_image_path = "C:\\Users\\owner\\Pictures\\grass.jpg";
+                String origin2_image_path = "C:\\Users\\owner\\Pictures\\grass2.jpg";
+                File.Copy(origin_image_path, base_image_path, true);
+                System.Threading.Thread.Sleep(1);
+
+                while (this.task_flag == Constants.HUE_IMAGE_TASK)
+                {
+
+
+                    DateTime s_dt = DateTime.Now;
+                    String image = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
+                    String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
+                    String hue_image_path = "C:\\Users\\owner\\source\\repos\\test_wpf\\Resources\\" + image + ".jpeg";
+
+                    listView.Items.Add(new string[] { str_date, "Hue" });
+                    Mat current_mat = Cv2.ImRead(origin2_image_path);
+                    Mat base_mat = Cv2.ImRead(base_image_path);
+
+                    Cv2.Resize(current_mat, current_mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
+                    Cv2.Resize(base_mat, base_mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
+                    Cv2.CvtColor(current_mat, current_mat, ColorConversionCodes.BGR2HSV_FULL);
+                    Cv2.CvtColor(base_mat, base_mat, ColorConversionCodes.BGR2HSV_FULL); // H: 0-180 S: 0-255 V: 0-255
+
+                    double ave_hue = 0;
+                    double ave_saturation = 0;
+                    int sum_px = current_mat.Width * current_mat.Height;
+
+                    for (int x = 0; x < current_mat.Width ; x++)
+                    {
+                        for (int y = 0; y < current_mat.Height; y++)
+                        {
+
+                            Vec3b current_px = current_mat.At<Vec3b>(y, x);
+                            Vec3b base_px = base_mat.At<Vec3b>(y, x);
+
+                            double current_sin = Math.Sin(current_px.Item0 * Math.PI / 180);
+                            double current_cos = Math.Cos(current_px.Item0 * Math.PI / 180);
+                            double base_sin = Math.Sin(base_px.Item0 * Math.PI / 180);
+                            double base_cos = Math.Cos(base_px.Item0 * Math.PI / 180);
+
+                            double dif_y = (current_px.Item1 * current_sin) - (base_px.Item1 * base_sin);
+                            double dif_x = (current_px.Item1 * current_cos) - (base_px.Item1 * base_cos);
+
+                            double dif_hue = 0.0;
+                            if (dif_x != 0.0)
+                            {
+                                dif_hue = Math.Atan(dif_y / dif_x);
+
+                            }
+                            double dif_saturation = dif_x / Math.Cos(dif_hue);
+
+                            ave_hue = ave_hue + (dif_hue * 180 / Math.PI);
+                            ave_saturation = ave_saturation + dif_saturation;
+
+                        }
+
+                    }
+                    ave_hue = ave_hue / sum_px;
+                    ave_saturation = ave_saturation / sum_px;
+
+                    DateTime e_dt = DateTime.Now;
+                    String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
+                    listView.Items.Add(new string[] { end_date, "Hue Fin" });
+
+                    Console.WriteLine("HUE");
+                    Console.WriteLine(ave_hue);
+                    Console.WriteLine("SATU");
+                    Console.WriteLine((byte)ave_saturation);
+
+                    DoEvents();
+                    System.Threading.Thread.Sleep(1000);
+
+                }
+
+            }
+            catch
+            {
+                HueButton.IsEnabled = true;
+
+            }
+            finally
+            {
+                HueButton.IsEnabled = true;
+
+            }
+
+        }
+
 
         private void listView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+
 
         }
 

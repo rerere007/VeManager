@@ -11,9 +11,9 @@
             <ColumnDefinition Width="28*"/>
             <ColumnDefinition Width="71*"/>
         </Grid.ColumnDefinitions>
-        <Button x:Name="ShowButton" Content="Show Image" HorizontalAlignment="Left" Margin="116,804,0,0" VerticalAlignment="Top" Width="356" Height="115" Click="show_image"/>
+        <Button x:Name="ShowButton" Content="Show Image" HorizontalAlignment="Left" Margin="116,804,0,0" VerticalAlignment="Top" Width="254" Height="76" Click="show_image"/>
         <Image x:Name="MainImage" Source="{Binding rp_image.Value}" HorizontalAlignment="Left" Height="657" Margin="116,94,0,0" VerticalAlignment="Top" Width="1139" Grid.ColumnSpan="2" />
-        <ListView x:Name="listView" Grid.Column="1" HorizontalAlignment="Left" Height="825" Margin="823,94,0,0" VerticalAlignment="Top" Width="439" ItemsSource="{Binding Mode=OneWay}" SelectionChanged="listView_SelectionChanged">
+        <ListView x:Name="listView" Grid.Column="1" HorizontalAlignment="Left" Height="316" Margin="759,94,0,0" VerticalAlignment="Top" Width="438" ItemsSource="{Binding Mode=OneWay}" SelectionChanged="listView_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="ID" DisplayMemberBinding="{Binding [0]}"/>
@@ -21,8 +21,9 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <Button x:Name="DeleteButton" Content="Delete Image" HorizontalAlignment="Left" Margin="508,804,0,0" VerticalAlignment="Top" Width="357" Height="115" Click="delete_image" Grid.ColumnSpan="2"/>
-        <Button x:Name="GrayButton" Content="Gray Image" HorizontalAlignment="Left" Margin="357,804,0,0" VerticalAlignment="Top" Width="357" Height="115" Click="grayscale_image" Grid.Column="1"/>
+        <Button x:Name="DeleteButton" Content="Delete Image" HorizontalAlignment="Left" Margin="403,804,0,0" VerticalAlignment="Top" Width="254" Height="76" Click="delete_image" Grid.ColumnSpan="2"/>
+        <Button x:Name="GrayButton" Content="Gray Image" HorizontalAlignment="Left" Margin="153,804,0,0" VerticalAlignment="Top" Width="256" Height="76" Click="grayscale_image" Grid.Column="1"/>
+        <Button x:Name="HueButton" Content="Hue Analysis" HorizontalAlignment="Left" Margin="446,804,0,0" VerticalAlignment="Top" Width="255" Height="76" Click="hue_image" Grid.Column="1"/>
 
     </Grid>
 </Window>
