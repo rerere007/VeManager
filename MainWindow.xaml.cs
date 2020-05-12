@@ -100,6 +100,11 @@ namespace test_wpf
             this.task_flag = Constants.DELETE_IMAGE_TASK;
             var source = new BitmapImage();
             MainImage.Source = source;
+
+            BaseImage.Source = source;
+            HueTextRed.Inlines.Clear();
+            HueTextBlue.Inlines.Clear();
+
             Console.WriteLine(this.task_flag);
 
         }
@@ -213,14 +218,28 @@ namespace test_wpf
             {
 
                 String base_image_path = "C:\\Users\\owner\\source\\repos\\test_wpf\\Resources\\base_image.jpeg";
-                String origin_image_path = "C:\\Users\\owner\\Pictures\\grass.jpg";
-                String origin2_image_path = "C:\\Users\\owner\\Pictures\\grass2.jpg";
-                File.Copy(origin_image_path, base_image_path, true);
+                String captured_image_path = "C:\\Users\\owner\\Pictures\\green.png";
+                String current_image_path = "C:\\Users\\owner\\Pictures\\blue.png";
+
+                Mat cap_mat = Cv2.ImRead(captured_image_path);
+                Cv2.Resize(cap_mat, cap_mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
+                Cv2.ImWrite(base_image_path, cap_mat);
+
+                //lock less bitmap
+                MemoryStream base_data = new MemoryStream(File.ReadAllBytes(base_image_path));
+                WriteableBitmap base_wbmp = new WriteableBitmap(BitmapFrame.Create(base_data));
+                base_data.Close();
+                this.BaseImage.Source = base_wbmp;
                 System.Threading.Thread.Sleep(1);
+
+                HueText.Inlines.Clear();
+                HueText.FontSize = 24;
+                HueText.Inlines.Add(new Bold(new Run("基準画像と現在画像の色ズレ")));
+                HueText.TextAlignment = TextAlignment.Center;
+
 
                 while (this.task_flag == Constants.HUE_IMAGE_TASK)
                 {
-
 
                     DateTime s_dt = DateTime.Now;
                     String image = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
@@ -228,62 +247,80 @@ namespace test_wpf
                     String hue_image_path = "C:\\Users\\owner\\source\\repos\\test_wpf\\Resources\\" + image + ".jpeg";
 
                     listView.Items.Add(new string[] { str_date, "Hue" });
-                    Mat current_mat = Cv2.ImRead(origin2_image_path);
+                    Mat current_mat = Cv2.ImRead(current_image_path);
                     Mat base_mat = Cv2.ImRead(base_image_path);
 
                     Cv2.Resize(current_mat, current_mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
-                    Cv2.Resize(base_mat, base_mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
+                    Cv2.ImWrite(hue_image_path, current_mat);
+                    //Cv2.Resize(base_mat, base_mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
                     Cv2.CvtColor(current_mat, current_mat, ColorConversionCodes.BGR2HSV_FULL);
                     Cv2.CvtColor(base_mat, base_mat, ColorConversionCodes.BGR2HSV_FULL); // H: 0-180 S: 0-255 V: 0-255
 
-                    double ave_hue = 0;
-                    double ave_saturation = 0;
+                    double ave_red_satur = 0;
+                    double ave_blue_satur = 0;
+
                     int sum_px = current_mat.Width * current_mat.Height;
 
                     for (int x = 0; x < current_mat.Width ; x++)
                     {
                         for (int y = 0; y < current_mat.Height; y++)
                         {
-
+                            // 反時計回りを正にしているため、 Yellow(current)とGreen(base)で比較すると-45となる。
                             Vec3b current_px = current_mat.At<Vec3b>(y, x);
                             Vec3b base_px = base_mat.At<Vec3b>(y, x);
 
-                            double current_sin = Math.Sin(current_px.Item0 * Math.PI / 180);
-                            double current_cos = Math.Cos(current_px.Item0 * Math.PI / 180);
-                            double base_sin = Math.Sin(base_px.Item0 * Math.PI / 180);
-                            double base_cos = Math.Cos(base_px.Item0 * Math.PI / 180);
+                            double dif_x = current_px.Item1 * Math.Cos(current_px.Item0 * 2 * Math.PI / 180) - base_px.Item1 * Math.Cos(base_px.Item0 * 2 * Math.PI / 180);
+                            double dif_y = current_px.Item1 * Math.Sin(current_px.Item0 * 2 * Math.PI / 180) - base_px.Item1 * Math.Sin(base_px.Item0 * 2 * Math.PI / 180);
+                            double blue_satur = -1 * (2 / Math.Sqrt(3)) * dif_y;
+                            double red_satur = dif_x + (dif_y / Math.Sqrt(3));
 
-                            double dif_y = (current_px.Item1 * current_sin) - (base_px.Item1 * base_sin);
-                            double dif_x = (current_px.Item1 * current_cos) - (base_px.Item1 * base_cos);
-
-                            double dif_hue = 0.0;
-                            if (dif_x != 0.0)
-                            {
-                                dif_hue = Math.Atan(dif_y / dif_x);
-
-                            }
-                            double dif_saturation = dif_x / Math.Cos(dif_hue);
-
-                            ave_hue = ave_hue + (dif_hue * 180 / Math.PI);
-                            ave_saturation = ave_saturation + dif_saturation;
+                            ave_red_satur = ave_red_satur + red_satur;
+                            ave_blue_satur = ave_blue_satur + blue_satur;
 
                         }
 
                     }
-                    ave_hue = ave_hue / sum_px;
-                    ave_saturation = ave_saturation / sum_px;
+
+                    ave_red_satur = ave_red_satur / sum_px * 100;
+                    ave_blue_satur = ave_blue_satur / sum_px * 100;
+
+                    //彩度は255階調で1.0としてみなす
+                    ave_red_satur = ave_red_satur / 255;
+                    ave_blue_satur = ave_blue_satur / 255;
+
+                    //lock less bitmap
+                    MemoryStream data = new MemoryStream(File.ReadAllBytes(hue_image_path));
+                    WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
+                    data.Close();
+                    this.MainImage.Source = wbmp;
+                    File.Delete(hue_image_path);
 
                     DateTime e_dt = DateTime.Now;
                     String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
                     listView.Items.Add(new string[] { end_date, "Hue Fin" });
 
-                    Console.WriteLine("HUE");
-                    Console.WriteLine(ave_hue);
-                    Console.WriteLine("SATU");
-                    Console.WriteLine((byte)ave_saturation);
-
                     DoEvents();
-                    System.Threading.Thread.Sleep(1000);
+
+                    // 結果表示
+                    ave_red_satur = Math.Round(ave_red_satur, 1, MidpointRounding.AwayFromZero);
+                    ave_blue_satur = Math.Round(ave_blue_satur, 1, MidpointRounding.AwayFromZero);
+                    
+                    HueTextRed.Inlines.Clear();
+                    HueTextRed.Inlines.Add(new Run("赤色ずれ "));
+                    HueTextRed.Inlines.Add(ave_red_satur.ToString());
+                    HueTextRed.Inlines.Add("%");
+                    HueTextRed.FontSize = 30;
+                    HueTextRed.TextAlignment = TextAlignment.Center;
+                    HueTextRed.Foreground = Brushes.Red;
+
+                    HueTextBlue.Inlines.Clear();
+                    HueTextBlue.Inlines.Add(new Run("青色ずれ "));
+                    HueTextBlue.Inlines.Add(ave_blue_satur.ToString());
+                    HueTextBlue.Inlines.Add("%");
+                    HueTextBlue.FontSize = 30;
+                    HueTextBlue.TextAlignment = TextAlignment.Center;
+                    HueTextBlue.Foreground = Brushes.Navy;
+
 
                 }
 

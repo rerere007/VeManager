@@ -11,9 +11,9 @@
             <ColumnDefinition Width="28*"/>
             <ColumnDefinition Width="71*"/>
         </Grid.ColumnDefinitions>
-        <Button x:Name="ShowButton" Content="Show Image" HorizontalAlignment="Left" Margin="116,804,0,0" VerticalAlignment="Top" Width="254" Height="76" Click="show_image"/>
+        <Button x:Name="ShowButton" Content="Show Image" HorizontalAlignment="Left" Margin="116,844,0,0" VerticalAlignment="Top" Width="254" Height="76" Click="show_image"/>
         <Image x:Name="MainImage" Source="{Binding rp_image.Value}" HorizontalAlignment="Left" Height="657" Margin="116,94,0,0" VerticalAlignment="Top" Width="1139" Grid.ColumnSpan="2" />
-        <ListView x:Name="listView" Grid.Column="1" HorizontalAlignment="Left" Height="316" Margin="759,94,0,0" VerticalAlignment="Top" Width="438" ItemsSource="{Binding Mode=OneWay}" SelectionChanged="listView_SelectionChanged">
+        <ListView x:Name="listView" Grid.Column="1" HorizontalAlignment="Left" Height="222" Margin="759,698,0,0" VerticalAlignment="Top" Width="438" ItemsSource="{Binding Mode=OneWay}" SelectionChanged="listView_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="ID" DisplayMemberBinding="{Binding [0]}"/>
@@ -21,9 +21,15 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <Button x:Name="DeleteButton" Content="Delete Image" HorizontalAlignment="Left" Margin="403,804,0,0" VerticalAlignment="Top" Width="254" Height="76" Click="delete_image" Grid.ColumnSpan="2"/>
-        <Button x:Name="GrayButton" Content="Gray Image" HorizontalAlignment="Left" Margin="153,804,0,0" VerticalAlignment="Top" Width="256" Height="76" Click="grayscale_image" Grid.Column="1"/>
-        <Button x:Name="HueButton" Content="Hue Analysis" HorizontalAlignment="Left" Margin="446,804,0,0" VerticalAlignment="Top" Width="255" Height="76" Click="hue_image" Grid.Column="1"/>
+        <Button x:Name="DeleteButton" Content="Delete Image" HorizontalAlignment="Left" Margin="403,844,0,0" VerticalAlignment="Top" Width="254" Height="76" Click="delete_image" Grid.ColumnSpan="2"/>
+        <Button x:Name="GrayButton" Content="Gray Image" HorizontalAlignment="Left" Margin="153,844,0,0" VerticalAlignment="Top" Width="256" Height="76" Click="grayscale_image" Grid.Column="1"/>
+        <Button x:Name="HueButton" Content="Hue Analysis" HorizontalAlignment="Left" Margin="446,844,0,0" VerticalAlignment="Top" Width="255" Height="76" Click="hue_image" Grid.Column="1"/>
+        <TextBlock x:Name="HueTextRed" Grid.Column="1" HorizontalAlignment="Left" Margin="759,456,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="100" Width="438"/>
+        <TextBlock x:Name="HueTextBlue" Grid.Column="1" HorizontalAlignment="Left" Margin="759,576,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="98" Width="438"/>
+        <TextBlock x:Name="HueText" Grid.Column="1" HorizontalAlignment="Left" Margin="759,383,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="438"/>
+        <Image x:Name="BaseImage" Grid.Column="1" HorizontalAlignment="Left" Height="248" Margin="759,94,0,0" VerticalAlignment="Top" Width="438"/>
+        <TextBlock x:Name="HueTextBase" Grid.Column="1" HorizontalAlignment="Left" Margin="795,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="370" Text="キャプチャーした基準画像" FontSize="36"/>
+        <TextBlock x:Name="HueTextBase_Copy" Grid.Column="1" HorizontalAlignment="Left" Margin="0,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="370" FontSize="36" Text="現在の画像"/>
 
     </Grid>
 </Window>
