@@ -1,0 +1,54 @@
+﻿<Window x:Class="test_wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:test_wpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="1080px" Width="1920px">
+    <Window.Resources>
+        <ResourceDictionary Source="/PresentationFramework.Aero2;component/themes/aero2.normalcolor.xaml" />
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="28*"/>
+            <ColumnDefinition Width="71*"/>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="ShowButton" Content="Show Image" HorizontalAlignment="Left" Margin="116,900,0,0" VerticalAlignment="Top" Width="254" Height="76" Click="show_image" FontFamily="Yu Gothic UI"/>
+        <Image x:Name="MainImage" Source="{Binding rp_image.Value}" HorizontalAlignment="Left" Height="657" Margin="116,94,0,0" VerticalAlignment="Top" Width="1139" Grid.ColumnSpan="2" />
+        <ListView x:Name="listView" Grid.Column="1" HorizontalAlignment="Left" Height="222" Margin="759,754,0,0" VerticalAlignment="Top" Width="438" ItemsSource="{Binding Mode=OneWay}" SelectionChanged="listView_SelectionChanged" FontFamily="Yu Gothic UI" >
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding [0]}"/>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding [1]}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <Button x:Name="DeleteButton" Content="Delete Image" HorizontalAlignment="Left" Margin="403,900,0,0" VerticalAlignment="Top" Width="254" Height="76" Click="delete_image" Grid.ColumnSpan="2" FontFamily="Yu Gothic UI"/>
+        <Button x:Name="GrayButton" Content="Gray Image" HorizontalAlignment="Left" Margin="153,900,0,0" VerticalAlignment="Top" Width="256" Height="76" Click="grayscale_image" Grid.Column="1" FontFamily="Yu Gothic UI"/>
+        <Button x:Name="HueButton" Content="Hue Analysis" HorizontalAlignment="Left" Margin="446,900,0,0" VerticalAlignment="Top" Width="255" Height="76" Click="hue_image" Grid.Column="1" FontFamily="Yu Gothic UI"/>
+
+        <TextBlock x:Name="HueTextRed" Grid.Column="1" HorizontalAlignment="Left" Margin="759,456,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="100" Width="438" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextBlue" Grid.Column="1" HorizontalAlignment="Left" Margin="759,576,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="98" Width="438" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueText" Grid.Column="1" HorizontalAlignment="Left" Margin="759,383,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="438" FontFamily="Yu Gothic UI"/>
+        <Image x:Name="BaseImage" Grid.Column="1" HorizontalAlignment="Left" Height="248" Margin="759,94,0,0" VerticalAlignment="Top" Width="438"/>
+        <TextBlock x:Name="HueTextBase" Grid.Column="1" HorizontalAlignment="Left" Margin="795,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="370" Text="キャプチャーした基準画像" FontSize="36" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextBase_Copy" Grid.Column="1" HorizontalAlignment="Left" Margin="0,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="370" FontSize="36" Text="現在の画像" FontFamily="Yu Gothic UI"/>
+
+        <TextBox x:Name="textLeftGreen" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBoxPrice_PreviewTextInput" CommandManager.PreviewExecuted="textBoxPrice_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="148,824,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="187" Background="#FF2DC364" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textRightGreen" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBoxPrice_PreviewTextInput" CommandManager.PreviewExecuted="textBoxPrice_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="403,824,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="187" Grid.ColumnSpan="2" Background="#FF22C55D" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textLeftRed" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBoxPrice_PreviewTextInput" CommandManager.PreviewExecuted="textBoxPrice_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="148,760,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="187" Background="#FFEC4019" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textRightRed" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBoxPrice_PreviewTextInput" CommandManager.PreviewExecuted="textBoxPrice_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="403,760,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="187" Grid.ColumnSpan="2" Background="#FFE8401A" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textLeftBlue" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBoxPrice_PreviewTextInput" CommandManager.PreviewExecuted="textBoxPrice_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="165,760,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="187" Grid.Column="1" Background="#FF3DE6BF" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textRightBlue" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBoxPrice_PreviewTextInput" CommandManager.PreviewExecuted="textBoxPrice_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="420,760,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="187" Grid.Column="1" Background="#FF65ECC1" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <Button Content="設定を保存" HorizontalAlignment="Left" Margin="517,804,0,0" VerticalAlignment="Top" Width="90" Click="Write_Button" Grid.Column="1" Height="30"/>
+        <Button Content="設定を読み出し" HorizontalAlignment="Left" Margin="517,846,0,0" VerticalAlignment="Top" Width="90" Click="Read_Button" Grid.Column="1" Height="30"/>
+
+        <Label Content="書き出しファイル名" HorizontalAlignment="Left" Margin="119,816,0,0" VerticalAlignment="Top" Width="178" Grid.Column="1"/>
+        <TextBox HorizontalAlignment="Left" Height="24" Margin="117,842,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180" x:Name="WriteFileName" Grid.Column="1"/>
+        <Label Content="読み出しファイル名" HorizontalAlignment="Left" Margin="313,816,0,0" VerticalAlignment="Top" Grid.Column="1" Width="180"/>
+        <TextBox HorizontalAlignment="Left" Height="24" Margin="313,842,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180" x:Name="ReadFileName" Grid.Column="1" />
+
+    </Grid>
+</Window>
