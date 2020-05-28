@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security.RightsManagement;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Windows;
@@ -21,14 +22,14 @@ using Reactive.Bindings;
 using OpenCvSharp;
 
 
-namespace test_wpf
+namespace VeManagerApp
 {
     /// <summary>
     /// MainWindow.xaml の相互作用ロジック
     /// </summary>
     static class Constants
     {
-        public const short SHOW_IMAGE_TASK= 1;
+        public const short SHOW_IMAGE_TASK = 1;
         public const short DELETE_IMAGE_TASK = 2;
         public const short GRAY_IMAGE_TASK = 3;
         public const short HUE_IMAGE_TASK = 4;
@@ -41,10 +42,17 @@ namespace test_wpf
         public ReactiveProperty<WriteableBitmap> rp_image { set; get; } = new ReactiveProperty<WriteableBitmap>();
         //Task Flag
         public int task_flag = 0;
+        public string resource_dir = "C:\\Users\\iwai.s-cw\\source\\repos\\VeManagerApp\\Resources\\";
+        public string captured_image_dir = "R:\\Temp\\";
+        string filename;
+        string texts;
+        String current_app_dir = GetCurrentAppDir();
 
 
         public MainWindow()
         {
+            string config_db_path = current_app_dir + "\\" + "ConfigDB";
+            SafeCreateDirectory(config_db_path);
             InitializeComponent();
 
         }
@@ -61,11 +69,55 @@ namespace test_wpf
                     DateTime dt = DateTime.Now;
                     String image = dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
                     String str_date = dt.ToString("yyyy/MM/dd-HH:mm:ss");
+                    Mat mat;
 
                     listView.Items.Add(new string[] { str_date, "Show" });
-                    String show_image_path = "C:\\Users\\owner\\source\\repos\\test_wpf\\Resources\\" + image + ".jpeg";
+                    String show_image_path = resource_dir + image + ".jpeg";
+                    String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
 
-                    File.Copy("C:\\Users\\owner\\Pictures\\shizuoka_outlet.jpg", show_image_path, true);
+                    try
+                    {
+                        Console.WriteLine("break point A");
+                        mat = Cv2.ImRead(current_image_path);
+                        Console.WriteLine("break point B");
+
+                    }
+                    catch (Exception opencv_read_error)
+                    {
+                        Console.WriteLine(opencv_read_error);
+                        Console.WriteLine("Catched the exception in line 83");
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    try
+                    {
+                        /* 処理コストのために画素数を1/16にする */
+                        Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, 0.334, 0.334);
+                    }
+                    catch (Exception opencv_resize_error)
+                    {
+                        Console.WriteLine(opencv_resize_error);
+                        Console.WriteLine("Catched the exception in line 97");
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    try
+                    {
+                        Cv2.ImWrite(show_image_path, mat);
+                    }
+                    catch (Exception opencv_write_error)
+                    {
+                        Console.WriteLine(opencv_write_error);
+                        Console.WriteLine("Catched the exception in line 205");
+                        DoEvents();
+                        continue;
+
+                    }
+
 
                     //lock less bitmap
                     MemoryStream data = new MemoryStream(File.ReadAllBytes(show_image_path));
@@ -75,7 +127,7 @@ namespace test_wpf
                     File.Delete(show_image_path);
                     Console.WriteLine(this.task_flag);
                     DoEvents();
-                    System.Threading.Thread.Sleep(1);
+
 
                 }
             }
@@ -113,26 +165,99 @@ namespace test_wpf
         {
             GrayButton.IsEnabled = false;
             this.task_flag = Constants.GRAY_IMAGE_TASK;
+            double conv_percent_to_sig = 0.39215686274;
             try
             {
                 while (this.task_flag == Constants.GRAY_IMAGE_TASK)
                 {
 
+                    double LeftBlue = 0;
+                    double RightBlue = 0;
+                    double LeftRed = 0;
+                    double RightRed = 0;
+                    double LeftGreen = 0;
+                    double RightGreen = 0;
+
+                    try
+                    {
+                        LeftBlue = int.Parse(textLeftBlue.Text) / conv_percent_to_sig;
+                        RightBlue = int.Parse(textRightBlue.Text) / conv_percent_to_sig;
+                        LeftRed = int.Parse(textLeftRed.Text) / conv_percent_to_sig;
+                        RightRed = int.Parse(textRightRed.Text) / conv_percent_to_sig;
+                        LeftGreen = int.Parse(textLeftGreen.Text) / conv_percent_to_sig;
+                        RightGreen = int.Parse(textRightGreen.Text) / conv_percent_to_sig;
+
+                    }
+                    catch (Exception catch_color_border_data)
+                    {
+                        Console.WriteLine(catch_color_border_data);
+
+                    }
+
                     DateTime s_dt = DateTime.Now;
                     String image = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
                     String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
+                    Console.WriteLine("break point -2");
 
-                    String grayscale_image_path = "C:\\Users\\owner\\source\\repos\\test_wpf\\Resources\\" + image + ".jpeg";
-                    String origin_image_path = "C:\\Users\\owner\\Pictures\\shizuoka_outlet.jpg";
+                    Mat mat;
+                    String grayscale_image_path = resource_dir + image + ".png";
+                    String current_image_path;
+                    Console.WriteLine("break point -1");
+                    
 
-                    Mat mat = Cv2.ImRead(origin_image_path);
-                    /* 処理コストのために画素数を1/4にする */
-                    Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
-                    //Mat matGray = mat.CvtColor(ColorConversionCodes.BGR2GRAY);
+                    try
+                    {
+                        current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
+                    }
+                    catch (Exception get_name_error)
+                    {
+                        Console.WriteLine(get_name_error);
+                        Console.WriteLine("Catched the exception in line 140");
+                        DoEvents();
+                        continue;
+
+                    }
+                    Console.WriteLine("break point 0");
+
+                    try
+                    {
+                        Console.WriteLine("break point A");
+                        mat = Cv2.ImRead(current_image_path);
+                        Console.WriteLine("break point B");
+
+                    }
+                    catch (Exception opencv_read_error)
+                    {
+                        Console.WriteLine(opencv_read_error);
+                        Console.WriteLine("Catched the exception in line 188");
+                        DoEvents();
+                        continue;
+
+                    }
+                    Console.WriteLine("break point 1");
+                    try
+                    {
+                        /* 処理コストのために画素数を1/16にする */
+                        Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, 0.334, 0.334);
+                        //Mat matGray = mat.CvtColor(ColorConversionCodes.BGR2GRAY);
+
+                    }
+                    catch (Exception opencv_resize_error)
+                    {
+                        Console.WriteLine(opencv_resize_error);
+                        Console.WriteLine("Catched the exception in line 205");
+                        DoEvents();
+                        continue;
+
+                    }
+                    Console.WriteLine("break point 2");
+
 
                     // gamma補正値 2.2
 
                     double LtoGamma = 1 / 2.2;
+                    Console.WriteLine("break point 3");
+
                     unsafe
                     {
                         MatForeachFunctionVec3b del_grayscale_func;
@@ -152,18 +277,28 @@ namespace test_wpf
                             // Gamma補正
                             double gamma_y_sig = Math.Pow((double)linear_y_sig / 255.0, LtoGamma) * 255;
                             // 放送規格のHD-SDIならば 1bit per 0.45662100456%のY信号レベル, 70%は16+153.3=169.3
-                            //画像規格sRGBならば255階調なので、
-                            if (gamma_y_sig > 169.3)
+                            //画像規格sRGBならば255階調なので、100% / 255 = 0.39215686%
+                            if (LeftRed >= gamma_y_sig && gamma_y_sig >= RightRed)
                             {
-                                    px->Item2 = 240;
+                                px->Item0 = 0;
+                                px->Item1 = 0;
+                                px->Item2 = 240;
 
                             }
-                            else if (gamma_y_sig < 26)
+                            else if (LeftBlue >= gamma_y_sig && gamma_y_sig >= RightBlue)
                             {
                                 px->Item0 = 200;
+                                px->Item1 = 0;
+                                px->Item2 = 0;
 
                             }
-                            else
+                            else if (LeftGreen >= gamma_y_sig && gamma_y_sig >= RightGreen)
+                            {
+                                px->Item0 = 0;
+                                px->Item1 = 180;
+                                px->Item2 = 0;
+                            }
+                            else //GrayScale
                             {
                                 px->Item0 = (byte)gamma_y_sig;
                                 px->Item1 = (byte)gamma_y_sig;
@@ -174,10 +309,24 @@ namespace test_wpf
                         mat.ForEachAsVec3b(del_grayscale_func);
 
                     };
+                    Console.WriteLine("break point 4");
+
 
                     //byte[] image_bytes = new byte[mat.Total()];
                     //Marshal.Copy(mat.Data, image_bytes, 0, image_bytes.Length);
-                    Cv2.ImWrite(grayscale_image_path, mat);
+                    try
+                    {
+                        Cv2.ImWrite(grayscale_image_path, mat);
+                    }
+                    catch (Exception opencv_write_error)
+                    {
+                        Console.WriteLine(opencv_write_error);
+                        Console.WriteLine("Catched the exception in line 205");
+                        DoEvents();
+                        continue;
+
+                    }
+                    Console.WriteLine("break point 5");
 
                     //lock less bitmap
                     MemoryStream data = new MemoryStream(File.ReadAllBytes(grayscale_image_path));
@@ -185,16 +334,21 @@ namespace test_wpf
                     data.Close();
                     this.MainImage.Source = wbmp;
                     //rp_image.Value = wbmp;
+                    Console.WriteLine("break point 6");
+
 
                     DateTime e_dt = DateTime.Now;
                     String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
                     listView.Items.Add(new string[] { str_date, "Gray" });
                     listView.Items.Add(new string[] { end_date, "Gray Fin" });
+                    Console.WriteLine("break point 7");
 
                     File.Delete(grayscale_image_path);
                     Console.WriteLine(this.task_flag);
                     DoEvents();
-                    System.Threading.Thread.Sleep(1);
+                    System.Threading.Thread.Sleep(100);
+                    Console.WriteLine("break point 8");
+
 
                 }
             }
@@ -217,12 +371,11 @@ namespace test_wpf
             try
             {
 
-                String base_image_path = "C:\\Users\\owner\\source\\repos\\test_wpf\\Resources\\base_image.jpeg";
-                String captured_image_path = "C:\\Users\\owner\\Pictures\\green.png";
-                String current_image_path = "C:\\Users\\owner\\Pictures\\blue.png";
+                String base_image_path = resource_dir + "base_image.png";
+                String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
 
-                Mat cap_mat = Cv2.ImRead(captured_image_path);
-                Cv2.Resize(cap_mat, cap_mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
+                Mat cap_mat = Cv2.ImRead(current_image_path);
+                Cv2.Resize(cap_mat, cap_mat, OpenCvSharp.Size.Zero, 0.334, 0.334);
                 Cv2.ImWrite(base_image_path, cap_mat);
 
                 //lock less bitmap
@@ -244,24 +397,88 @@ namespace test_wpf
                     DateTime s_dt = DateTime.Now;
                     String image = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
                     String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
-                    String hue_image_path = "C:\\Users\\owner\\source\\repos\\test_wpf\\Resources\\" + image + ".jpeg";
+                    String hue_image_path = resource_dir + image + ".png";
+                    Mat current_mat;
+                    Mat base_mat;
 
+                    current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
                     listView.Items.Add(new string[] { str_date, "Hue" });
-                    Mat current_mat = Cv2.ImRead(current_image_path);
-                    Mat base_mat = Cv2.ImRead(base_image_path);
 
-                    Cv2.Resize(current_mat, current_mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
-                    Cv2.ImWrite(hue_image_path, current_mat);
-                    //Cv2.Resize(base_mat, base_mat, OpenCvSharp.Size.Zero, 0.5, 0.5);
-                    Cv2.CvtColor(current_mat, current_mat, ColorConversionCodes.BGR2HSV_FULL);
-                    Cv2.CvtColor(base_mat, base_mat, ColorConversionCodes.BGR2HSV_FULL); // H: 0-180 S: 0-255 V: 0-255
+                    try
+                    {
+                        current_mat = Cv2.ImRead(current_image_path);
+                        base_mat = Cv2.ImRead(base_image_path);
+
+                    }
+                    catch(Exception opencv_read_error)
+                    {
+                        Console.WriteLine(opencv_read_error);
+                        Console.WriteLine("Catched the exception in line 280");
+                        DoEvents();
+                        continue;
+
+                    }
+                    try
+                    {
+                        Cv2.Resize(current_mat, current_mat, OpenCvSharp.Size.Zero, 0.334, 0.334);
+                    }
+                    catch (Exception current_mat_resize_error)
+                    {
+                        Console.WriteLine(current_mat_resize_error);
+                        Console.WriteLine("Catched the exception in line 396");
+                        DoEvents();
+                        continue;
+
+                    }
+
+
+                    try
+                    {
+                        Cv2.ImWrite(hue_image_path, current_mat);
+
+                    }
+                    catch (Exception opencv_write_error)
+                    {
+                        Console.WriteLine(opencv_write_error);
+                        Console.WriteLine("Catched the exception in line 295");
+                        DoEvents();
+                        continue;
+
+                    }
+                    //Cv2.Resize(base_mat, base_mat, OpenCvSharp.Size.Zero, 0.334, 0.334);
+                    
+                    try
+                    {
+                        Cv2.CvtColor(current_mat, current_mat, ColorConversionCodes.BGR2HSV_FULL);
+
+                    }
+                    catch (Exception current_mat_cvt_error)
+                    {
+                        Console.WriteLine(current_mat_cvt_error);
+                        Console.WriteLine("Catched the exception in line 414");
+                        DoEvents();
+                        continue;
+                    }
+
+                    try
+                    {
+                        Cv2.CvtColor(base_mat, base_mat, ColorConversionCodes.BGR2HSV_FULL); // H: 0-180 S: 0-255 V: 0-255
+
+                    }
+                    catch(Exception base_mat_cvt_error)
+                    {
+                        Console.WriteLine(base_mat_cvt_error);
+                        Console.WriteLine("Catched the exception in line 427");
+                        DoEvents();
+                        continue;
+                    }
 
                     double ave_red_satur = 0;
                     double ave_blue_satur = 0;
 
                     int sum_px = current_mat.Width * current_mat.Height;
 
-                    for (int x = 0; x < current_mat.Width ; x++)
+                    for (int x = 0; x < current_mat.Width; x++)
                     {
                         for (int y = 0; y < current_mat.Height; y++)
                         {
@@ -304,7 +521,7 @@ namespace test_wpf
                     // 結果表示
                     ave_red_satur = Math.Round(ave_red_satur, 1, MidpointRounding.AwayFromZero);
                     ave_blue_satur = Math.Round(ave_blue_satur, 1, MidpointRounding.AwayFromZero);
-                    
+
                     HueTextRed.Inlines.Clear();
                     HueTextRed.Inlines.Add(new Run("赤色ずれ "));
                     HueTextRed.Inlines.Add(ave_red_satur.ToString());
@@ -358,6 +575,99 @@ namespace test_wpf
         {
             ((DispatcherFrame)f).Continue = false;
             return null;
+        }
+
+        public string getNewestFileName(string folderName)
+        {
+            // 指定されたフォルダ内のdatファイル名をすべて取得する
+            string[] files = System.IO.Directory.GetFiles(folderName, "*.png", System.IO.SearchOption.TopDirectoryOnly);
+
+            string newestFileName = string.Empty;
+
+            System.DateTime updateTime = System.DateTime.MinValue;
+            foreach (string file in files)
+            {
+                // それぞれのファイルの更新日付を取得する
+                System.IO.FileInfo fi = new System.IO.FileInfo(file);
+                // 更新日付が最新なら更新日付とファイル名を保存する
+                if (fi.LastWriteTime > updateTime)
+                {
+                    updateTime = fi.LastWriteTime;
+                    newestFileName = file;
+                }
+            }
+            // ファイル名を返す
+            return System.IO.Path.GetFileName(newestFileName);
+        }
+
+        //新規作成
+        private void textBoxPrice_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            // 0-9のみ
+            e.Handled = !new Regex("[0-9]").IsMatch(e.Text);
+        }
+
+        private void textBoxPrice_PreviewExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            // 貼り付けを許可しない
+            if (e.Command == ApplicationCommands.Paste)
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void Write_Button(object sender, RoutedEventArgs e)
+        {
+            //新規書き込みクラスのインスタンス化
+            TextWrite textWrite = new TextWrite();
+
+            filename = WriteFileName.Text.ToString();
+            texts = textLeftRed.Text + "," + textRightRed.Text + "," + textLeftGreen.Text + "," + textRightGreen.Text + "," + textLeftBlue.Text + "," + textRightBlue.Text;
+
+            textWrite.Write(filename, texts);
+        }
+
+        //読み込み
+        private void Read_Button(object sender, RoutedEventArgs e)
+        {
+            //読み込みクラスのインスタンス化
+            ReadText readText = new ReadText();
+
+            filename = ReadFileName.Text.ToString();
+
+            String FileContent = readText.Read(filename);
+            string[] ParameterArray = FileContent.Split(',');
+            if (ParameterArray.Length != 6)
+            {
+                MessageBox.Show("設定ファイルの形式に問題があります", "ファイルエラー", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            if (FileContent != "")
+            {
+                textLeftRed.Text = ParameterArray[0];
+                textRightRed.Text = ParameterArray[1];
+                textLeftGreen.Text = ParameterArray[2];
+                textRightGreen.Text = ParameterArray[3];
+                textLeftBlue.Text = ParameterArray[4];
+                textRightBlue.Text = ParameterArray[5];
+
+            }
+
+
+        }
+
+        public static string GetCurrentAppDir()
+        {
+            return System.IO.Path.GetDirectoryName(
+                System.Reflection.Assembly.GetExecutingAssembly().Location);
+        }
+        public static DirectoryInfo SafeCreateDirectory(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                return null;
+            }
+            return Directory.CreateDirectory(path);
         }
 
     }

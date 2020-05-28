@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace test_wpf.Properties
+namespace VeManagerApp.Properties
 {
 
 
