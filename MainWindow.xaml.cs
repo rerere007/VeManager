@@ -1,25 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using OpenCvSharp;
+using Reactive.Bindings;
+using System;
 using System.IO;
-using System.Linq;
-using System.Security.RightsManagement;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Runtime.InteropServices;
-using Reactive.Bindings;
-using OpenCvSharp;
+using System.Windows.Threading;
+
+
 
 
 namespace VeManagerApp
@@ -33,6 +25,7 @@ namespace VeManagerApp
         public const short DELETE_IMAGE_TASK = 2;
         public const short GRAY_IMAGE_TASK = 3;
         public const short HUE_IMAGE_TASK = 4;
+        public const short FACE_IMAGE_TASK = 5;
 
     }
 
@@ -42,18 +35,39 @@ namespace VeManagerApp
         public ReactiveProperty<WriteableBitmap> rp_image { set; get; } = new ReactiveProperty<WriteableBitmap>();
         //Task Flag
         public int task_flag = 0;
-        public string resource_dir = "C:\\Users\\iwai.s-cw\\source\\repos\\VeManagerApp\\Resources\\";
+        public string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
         public string captured_image_dir = "R:\\Temp\\";
+        //public string captured_image_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Image\\";
         string filename;
         string texts;
         String current_app_dir = GetCurrentAppDir();
+        CascadeClassifier cascade = new CascadeClassifier();
 
 
         public MainWindow()
         {
             string config_db_path = current_app_dir + "\\" + "ConfigDB";
+            string cascade_dir = current_app_dir + "\\" + "cascade";
+
             SafeCreateDirectory(config_db_path);
+            SafeCreateDirectory(cascade_dir);
+
+            try
+            {
+
+                String cascade_path = cascade_dir + "\\" + "haarcascade_frontalface_alt2.xml";
+                cascade.Load(cascade_path);
+
+            }
+            catch (Exception cascade_error)
+            {
+                Console.WriteLine(cascade_error);
+                Console.WriteLine("Cascade分類機が開けません");
+                System.Threading.Thread.Sleep(10000);
+
+            }
             InitializeComponent();
+
 
         }
 
@@ -72,7 +86,7 @@ namespace VeManagerApp
                     Mat mat;
 
                     listView.Items.Add(new string[] { str_date, "Show" });
-                    String show_image_path = resource_dir + image + ".jpeg";
+                    String show_image_path = resource_dir + image + ".png";
                     String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
 
                     try
@@ -257,42 +271,50 @@ namespace VeManagerApp
 
                     double LtoGamma = 1 / 2.2;
                     Console.WriteLine("break point 3");
+                    Console.WriteLine("画素値[0, 0]の出力(B)" + mat.At<Vec3b>(0,0)[0]);
+                    Console.WriteLine("画素値[0, 0]の出力(G)" + mat.At<Vec3b>(0,0)[1]);
+                    Console.WriteLine("画素値[0, 0]の出力(R)" + mat.At<Vec3b>(0,0)[2]);
 
                     unsafe
                     {
                         MatForeachFunctionVec3b del_grayscale_func;
                         del_grayscale_func = delegate (Vec3b* px, int* position)
                         {
+                            /*ガンマ返還を考慮した式*/
                             // BGRを逆ガンマ補正（低輝度部分の差は捨てる）
-                            double lpx_b = Math.Pow((double)px->Item0 / 255.0, 2.2) * 255;
-                            double lpx_g = Math.Pow((double)px->Item1 / 255.0, 2.2) * 255;
-                            double lpx_r = Math.Pow((double)px->Item2 / 255.0, 2.2) * 255;
+                            //double lpx_b = Math.Pow((double)px->Item0 / 255.0, 2.2) * 255;
+                            //double lpx_g = Math.Pow((double)px->Item1 / 255.0, 2.2) * 255;
+                            //double lpx_r = Math.Pow((double)px->Item2 / 255.0, 2.2) * 255;
 
                             //BT.601 V = 0.183R + 0.614G + 0.062B + 16
                             //BT.709 V = 0.2126 * R + 0.7152 * G + 0.0722 * B
 
                             // Y信号化 => BT.709
-                            double linear_y_sig = 0.2126 * lpx_r + 0.7152 * lpx_g + 0.0722 * lpx_b;
+                            //double linear_y_sig = 0.2126 * lpx_r + 0.7152 * lpx_g + 0.0722 * lpx_b;
 
                             // Gamma補正
-                            double gamma_y_sig = Math.Pow((double)linear_y_sig / 255.0, LtoGamma) * 255;
+                            //double gamma_y_sig = Math.Pow((double)linear_y_sig / 255.0, LtoGamma) * 255;
                             // 放送規格のHD-SDIならば 1bit per 0.45662100456%のY信号レベル, 70%は16+153.3=169.3
                             //画像規格sRGBならば255階調なので、100% / 255 = 0.39215686%
-                            if (LeftRed >= gamma_y_sig && gamma_y_sig >= RightRed)
+
+                            /* Gamma処理を行わずに計算した場合(DeckLinkがPNGの際にやってくれている?) */
+                            double linear_y_sig = 0.2126 * (double)px->Item2 + 0.7152 * (double)px->Item1 + 0.0722 * (double)px->Item0;
+
+                            if (LeftRed >= linear_y_sig && linear_y_sig >= RightRed)
                             {
                                 px->Item0 = 0;
                                 px->Item1 = 0;
                                 px->Item2 = 240;
 
                             }
-                            else if (LeftBlue >= gamma_y_sig && gamma_y_sig >= RightBlue)
+                            else if (LeftBlue >= linear_y_sig && linear_y_sig >= RightBlue)
                             {
                                 px->Item0 = 200;
                                 px->Item1 = 0;
                                 px->Item2 = 0;
 
                             }
-                            else if (LeftGreen >= gamma_y_sig && gamma_y_sig >= RightGreen)
+                            else if (LeftGreen >= linear_y_sig && linear_y_sig >= RightGreen)
                             {
                                 px->Item0 = 0;
                                 px->Item1 = 180;
@@ -300,9 +322,9 @@ namespace VeManagerApp
                             }
                             else //GrayScale
                             {
-                                px->Item0 = (byte)gamma_y_sig;
-                                px->Item1 = (byte)gamma_y_sig;
-                                px->Item2 = (byte)gamma_y_sig;
+                                px->Item0 = (byte)linear_y_sig;
+                                px->Item1 = (byte)linear_y_sig;
+                                px->Item2 = (byte)linear_y_sig;
 
                             }
                         };
@@ -364,6 +386,144 @@ namespace VeManagerApp
             }
 
         }
+
+        private void face_image(object sender, RoutedEventArgs e)
+        {
+            FaceButton.IsEnabled = false;
+            this.task_flag = Constants.FACE_IMAGE_TASK;
+            try
+            {
+                while (this.task_flag == Constants.FACE_IMAGE_TASK)
+                {
+                    DateTime dt = DateTime.Now;
+                    String image = dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
+                    String str_date = dt.ToString("yyyy/MM/dd-HH:mm:ss");
+                    Mat OriginMat;
+                    Mat GrayMat;
+                    Mat FaceMat;
+                    OpenCvSharp.Rect[] FaceRects;
+                    bool detect_flag = false;
+
+                    listView.Items.Add(new string[] { str_date, "Face" });
+                    String face_image_path = resource_dir + image + ".png";
+                    String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
+
+                    try
+                    {
+                        OriginMat = Cv2.ImRead(current_image_path);
+
+                    }
+                    catch (Exception opencv_read_error)
+                    {
+                        Console.WriteLine(opencv_read_error);
+                        Console.WriteLine("Catched the exception in line 83");
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    try
+                    {
+                        /* 処理コストのために画素数を1/16にする */
+                        Cv2.Resize(OriginMat, OriginMat, OpenCvSharp.Size.Zero, 0.334, 0.334);
+                    }
+                    catch (Exception opencv_resize_error)
+                    {
+                        Console.WriteLine(opencv_resize_error);
+                        Console.WriteLine("Catched the exception in line 97");
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    try
+                    {
+                        GrayMat = OriginMat.CvtColor(ColorConversionCodes.BGR2GRAY);
+
+                    }
+                    catch (Exception opencv_cvt_error)
+                    {
+                        Console.WriteLine(opencv_cvt_error);
+                        Console.WriteLine("Catched the exception in line 434");
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    try
+                    {
+                        FaceRects = cascade.DetectMultiScale(GrayMat, 1.1, 3, HaarDetectionType.FindBiggestObject, new OpenCvSharp.Size(10, 10), new OpenCvSharp.Size(300, 300));
+
+                    }
+                    catch (Exception face_detect_error)
+                    {
+                        Console.WriteLine(face_detect_error);
+                        Console.WriteLine("Catched the exception in line aa");
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    Console.WriteLine("Break Point");
+
+                    if (FaceRects.Length > 0)
+                    {
+                        detect_flag = true;
+                        Console.WriteLine("Face Detection Done.");
+                        OpenCvSharp.Rect FaceRect = FaceRects[0];
+                        FaceMat = OriginMat.Clone(FaceRect);
+
+                        try
+                        {
+                            Cv2.ImWrite(face_image_path, FaceMat);
+
+                        }
+                        catch (Exception opencv_write_error)
+                        {
+                            Console.WriteLine(opencv_write_error);
+                            Console.WriteLine("Catched the exception in line 205");
+                            DoEvents();
+                            continue;
+
+                        }
+
+                    }
+                    else
+                    {
+                        face_image_path = resource_dir + "NoImage.png";
+                        System.Threading.Thread.Sleep(1000);
+                        Console.WriteLine("No Detect");
+
+                    }
+
+                    //face image
+                    MemoryStream data = new MemoryStream(File.ReadAllBytes(face_image_path));
+                    WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
+                    data.Close();
+                    this.BaseImage.Source = wbmp;
+
+                    if (detect_flag == true)
+                    {
+                        File.Delete(face_image_path);
+                    }
+                    Console.WriteLine(this.task_flag);
+                    DoEvents();
+
+
+                }
+            }
+            catch
+            {
+                FaceButton.IsEnabled = true;
+
+            }
+            finally
+            {
+                FaceButton.IsEnabled = true;
+
+            }
+        }
+
         private void hue_image(object sender, RoutedEventArgs e)
         {
             HueButton.IsEnabled = false;
@@ -475,6 +635,9 @@ namespace VeManagerApp
 
                     double ave_red_satur = 0;
                     double ave_blue_satur = 0;
+                    Console.WriteLine("画素値[0, 0]の出力(H)" + current_mat.At<Vec3b>(0, 0)[0]);
+                    Console.WriteLine("画素値[0, 0]の出力(S)" + current_mat.At<Vec3b>(0, 0)[1]);
+                    Console.WriteLine("画素値[0, 0]の出力(V)" + current_mat.At<Vec3b>(0, 0)[2]);
 
                     int sum_px = current_mat.Width * current_mat.Height;
 
