@@ -1,4 +1,4 @@
-﻿using OpenCvSharp;
+﻿using OpenCvSharp; //OpenCvSharp4.windows
 using Reactive.Bindings;
 using System;
 using System.IO;
@@ -82,10 +82,8 @@ namespace VeManagerApp
                 {
                     DateTime dt = DateTime.Now;
                     String image = dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
-                    String str_date = dt.ToString("yyyy/MM/dd-HH:mm:ss");
                     Mat mat;
 
-                    listView.Items.Add(new string[] { str_date, "Show" });
                     String show_image_path = resource_dir + image + ".png";
                     String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
 
@@ -161,15 +159,16 @@ namespace VeManagerApp
         private void delete_image(object sender, RoutedEventArgs e)
         {
             DateTime dt = DateTime.Now;
-            listView.Items.Add(new string[] { dt.ToString("yyyy/MM/dd HH:mm:ss"), "Delete" });
 
             this.task_flag = Constants.DELETE_IMAGE_TASK;
             var source = new BitmapImage();
             MainImage.Source = source;
 
             BaseImage.Source = source;
+            /*
             HueTextRed.Inlines.Clear();
             HueTextBlue.Inlines.Clear();
+            */
 
             Console.WriteLine(this.task_flag);
 
@@ -361,8 +360,6 @@ namespace VeManagerApp
 
                     DateTime e_dt = DateTime.Now;
                     String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
-                    listView.Items.Add(new string[] { str_date, "Gray" });
-                    listView.Items.Add(new string[] { end_date, "Gray Fin" });
                     Console.WriteLine("break point 7");
 
                     File.Delete(grayscale_image_path);
@@ -404,7 +401,6 @@ namespace VeManagerApp
                     OpenCvSharp.Rect[] FaceRects;
                     bool detect_flag = false;
 
-                    listView.Items.Add(new string[] { str_date, "Face" });
                     String face_image_path = resource_dir + image + ".png";
                     String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
 
@@ -452,7 +448,7 @@ namespace VeManagerApp
 
                     try
                     {
-                        FaceRects = cascade.DetectMultiScale(GrayMat, 1.1, 3, HaarDetectionType.FindBiggestObject, new OpenCvSharp.Size(10, 10), new OpenCvSharp.Size(300, 300));
+                        FaceRects = cascade.DetectMultiScale(GrayMat);
 
                     }
                     catch (Exception face_detect_error)
@@ -490,11 +486,14 @@ namespace VeManagerApp
                     }
                     else
                     {
-                        face_image_path = resource_dir + "NoImage.png";
-                        System.Threading.Thread.Sleep(1000);
                         Console.WriteLine("No Detect");
+                        DoEvents();
+                        System.Threading.Thread.Sleep(100);
+                        continue;
 
                     }
+
+                    
 
                     //face image
                     MemoryStream data = new MemoryStream(File.ReadAllBytes(face_image_path));
@@ -502,10 +501,7 @@ namespace VeManagerApp
                     data.Close();
                     this.BaseImage.Source = wbmp;
 
-                    if (detect_flag == true)
-                    {
-                        File.Delete(face_image_path);
-                    }
+                    File.Delete(face_image_path);
                     Console.WriteLine(this.task_flag);
                     DoEvents();
 
@@ -524,6 +520,7 @@ namespace VeManagerApp
             }
         }
 
+        /*
         private void hue_image(object sender, RoutedEventArgs e)
         {
             HueButton.IsEnabled = false;
@@ -562,7 +559,6 @@ namespace VeManagerApp
                     Mat base_mat;
 
                     current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
-                    listView.Items.Add(new string[] { str_date, "Hue" });
 
                     try
                     {
@@ -677,7 +673,6 @@ namespace VeManagerApp
 
                     DateTime e_dt = DateTime.Now;
                     String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
-                    listView.Items.Add(new string[] { end_date, "Hue Fin" });
 
                     DoEvents();
 
@@ -717,13 +712,7 @@ namespace VeManagerApp
             }
 
         }
-
-
-        private void listView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-
-        }
+        */
 
         // ↓ ここから独自開発のDoEvents()
         public void DoEvents()
