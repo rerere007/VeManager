@@ -1,4 +1,4 @@
-# ImageManager
+# VeManager
 C# gui app for image analysis
 
 ## import package
