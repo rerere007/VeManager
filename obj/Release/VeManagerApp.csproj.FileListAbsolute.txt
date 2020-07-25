@@ -37,3 +37,4 @@ C:\Users\owner\source\repos\VeManager\bin\Release\dll\x64\OpenCvSharpExtern.dll
 C:\Users\owner\source\repos\VeManager\bin\Release\dll\x64\opencv_videoio_ffmpeg440_64.dll
 C:\Users\owner\source\repos\VeManager\bin\Release\System.Drawing.Common.dll
 C:\Users\owner\source\repos\VeManager\obj\Release\VeManagerApp_Content.g.cs
+C:\Users\owner\source\repos\VeManager\obj\Release\VeManagerApp.csprojAssemblyReference.cache
