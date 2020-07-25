@@ -37,9 +37,9 @@ namespace VeManagerApp
         public ReactiveProperty<WriteableBitmap> rp_image { set; get; } = new ReactiveProperty<WriteableBitmap>();
         //Task Flag
         public int task_flag = Constants.NO_TASK;
-        public string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
+        public string resource_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Resources\\";
         //public string captured_image_dir = "R:\\Temp\\";
-        public string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
+        public string captured_image_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Image\\";
         string filename;
         string texts;
         String current_app_dir = GetCurrentAppDir();
