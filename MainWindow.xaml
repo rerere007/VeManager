@@ -20,11 +20,11 @@
         <Button x:Name="GrayButton" Content="輝度ペイント加工" HorizontalAlignment="Left" Margin="829,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="grayscale_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
         <Button x:Name="FaceButton" Content="顔検出" HorizontalAlignment="Left" Margin="972,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="face_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
         <Image x:Name="MainImage" HorizontalAlignment="Left" Height="350" Margin="54,68,0,0" VerticalAlignment="Top" Width="622" />
-        <!--
-        <TextBlock x:Name="HueTextRed" HorizontalAlignment="Left" Margin="942,302,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="50" Width="358" FontFamily="Yu Gothic UI"/>
-        <TextBlock x:Name="HueTextBlue" HorizontalAlignment="Left" Margin="942,382,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="77" Width="358" FontFamily="Yu Gothic UI"/>
-        <TextBlock x:Name="HueText" HorizontalAlignment="Left" Margin="942,244,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="358" FontFamily="Yu Gothic UI"/>
-        -->
+
+        <TextBlock x:Name="HueTextRed" HorizontalAlignment="Left" Margin="942,257,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="50" Width="358" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextBlue" HorizontalAlignment="Left" Margin="942,337,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="77" Width="358" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueText" HorizontalAlignment="Left" Margin="942,199,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="358" FontFamily="Yu Gothic UI"/>
+
         <Image x:Name="BaseImage" HorizontalAlignment="Left" Height="159" Margin="700,68,0,0" VerticalAlignment="Top" Width="274"/>
         <TextBlock x:Name="BaseText" HorizontalAlignment="Left" Margin="700,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="126" FontSize="36" FontFamily="Yu Gothic UI"><Run Background="#4C323489" Text="顔検出"/></TextBlock>
         <TextBlock x:Name="CurrentText" HorizontalAlignment="Left" Margin="54,7,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="219" FontSize="36" FontFamily="Yu Gothic UI"><Run Background="#4C323489" Text="処理後の画像"/></TextBlock>
@@ -50,7 +50,7 @@
         <Label Content="＞明るさ＞" HorizontalAlignment="Left" Margin="475,512,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
         <Label Content="＞明るさ＞" HorizontalAlignment="Left" Margin="475,559,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
 
-        <!-- <Button x:Name="HueButton" Content="HueButton" HorizontalAlignment="Left" Margin="797,671,0,0" VerticalAlignment="Top" Width="59" Height="27" Click="hue_image" FontFamily="Yu Gothic UI"/> -->
+        <Button x:Name="HueButton" Content="HueButton" HorizontalAlignment="Left" Margin="1140,487,0,0" VerticalAlignment="Top" Width="59" Height="27" Click="hue_image" FontFamily="Yu Gothic UI"/>
 
     </Grid>
 </Window>
