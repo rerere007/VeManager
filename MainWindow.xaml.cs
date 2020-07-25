@@ -13,8 +13,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 
-
-
 namespace VeManagerApp
 {
     /// <summary>
@@ -95,9 +93,8 @@ namespace VeManagerApp
 
                     try
                     {
-                        Console.WriteLine("break point A");
                         mat = Cv2.ImRead(current_image_path);
-                        Console.WriteLine("break point B");
+
 
                     }
                     catch (Exception opencv_read_error)
@@ -113,6 +110,7 @@ namespace VeManagerApp
                     {
                         /* 処理コストのために画素数を1/16にする */
                         Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, 0.334, 0.334);
+
                     }
                     catch (Exception opencv_resize_error)
                     {
@@ -126,6 +124,7 @@ namespace VeManagerApp
                     try
                     {
                         Cv2.ImWrite(show_image_path, mat);
+
                     }
                     catch (Exception opencv_write_error)
                     {
@@ -136,7 +135,6 @@ namespace VeManagerApp
 
                     }
 
-
                     //lock less bitmap
                     MemoryStream data = new MemoryStream(File.ReadAllBytes(show_image_path));
                     WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
@@ -145,7 +143,6 @@ namespace VeManagerApp
                     File.Delete(show_image_path);
                     Console.WriteLine(this.task_flag);
                     DoEvents();
-
 
                 }
             }
@@ -218,14 +215,11 @@ namespace VeManagerApp
                     DateTime s_dt = DateTime.Now;
                     String image = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
                     String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
-                    Console.WriteLine("break point -2");
 
                     Mat mat;
                     String grayscale_image_path = resource_dir + image + ".png";
                     String current_image_path;
-                    Console.WriteLine("break point -1");
                     
-
                     try
                     {
                         current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
@@ -238,13 +232,10 @@ namespace VeManagerApp
                         continue;
 
                     }
-                    Console.WriteLine("break point 0");
 
                     try
                     {
-                        Console.WriteLine("break point A");
                         mat = Cv2.ImRead(current_image_path);
-                        Console.WriteLine("break point B");
 
                     }
                     catch (Exception opencv_read_error)
@@ -255,7 +246,7 @@ namespace VeManagerApp
                         continue;
 
                     }
-                    Console.WriteLine("break point 1");
+
                     try
                     {
                         /* 処理コストのために画素数を1/16にする */
@@ -271,16 +262,9 @@ namespace VeManagerApp
                         continue;
 
                     }
-                    Console.WriteLine("break point 2");
-
 
                     // gamma補正値 2.2
                     //double LtoGamma = 1 / 2.2;
-
-                    Console.WriteLine("break point 3");
-                    Console.WriteLine("画素値[0, 0]の出力(B)" + mat.At<Vec3b>(0,0)[0]);
-                    Console.WriteLine("画素値[0, 0]の出力(G)" + mat.At<Vec3b>(0,0)[1]);
-                    Console.WriteLine("画素値[0, 0]の出力(R)" + mat.At<Vec3b>(0,0)[2]);
 
                     unsafe
                     {
@@ -338,8 +322,6 @@ namespace VeManagerApp
                         mat.ForEachAsVec3b(del_grayscale_func);
 
                     };
-                    Console.WriteLine("break point 4");
-
 
                     //byte[] image_bytes = new byte[mat.Total()];
                     //Marshal.Copy(mat.Data, image_bytes, 0, image_bytes.Length);
@@ -355,7 +337,6 @@ namespace VeManagerApp
                         continue;
 
                     }
-                    Console.WriteLine("break point 5");
 
                     //lock less bitmap
                     MemoryStream data = new MemoryStream(File.ReadAllBytes(grayscale_image_path));
@@ -363,18 +344,15 @@ namespace VeManagerApp
                     data.Close();
                     this.MainImage.Source = wbmp;
                     //rp_image.Value = wbmp;
-                    Console.WriteLine("break point 6");
 
 
                     DateTime e_dt = DateTime.Now;
                     String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
-                    Console.WriteLine("break point 7");
 
                     File.Delete(grayscale_image_path);
                     Console.WriteLine(this.task_flag);
                     DoEvents();
                     System.Threading.Thread.Sleep(100);
-                    Console.WriteLine("break point 8");
 
 
                 }
@@ -516,7 +494,6 @@ namespace VeManagerApp
                     File.Delete(face_image_path);
                     Console.WriteLine(this.task_flag);
                     DoEvents();
-
 
                 }
             }
@@ -832,13 +809,13 @@ namespace VeManagerApp
         }
 
         //新規作成
-        private void textBoxPrice_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        private void textBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             // 0-9のみ
             e.Handled = !new Regex("[0-9]").IsMatch(e.Text);
         }
 
-        private void textBoxPrice_PreviewExecuted(object sender, ExecutedRoutedEventArgs e)
+        private void textBox_PreviewExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             // 貼り付けを許可しない
             if (e.Command == ApplicationCommands.Paste)
