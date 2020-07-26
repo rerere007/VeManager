@@ -110,6 +110,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Constants.cs" />
+    <Compile Include="FrameData.cs" />
     <Compile Include="TextWrite.cs" />
     <Compile Include="ReadText.cs" />
     <Compile Include="MainWindow.xaml.cs">

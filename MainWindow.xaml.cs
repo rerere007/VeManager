@@ -18,21 +18,11 @@ namespace VeManagerApp
     /// <summary>
     /// MainWindow.xaml の相互作用ロジック
     /// </summary>
-    static class Constants
-    {
-        public const short NO_TASK = 0;
-        public const short SHOW_IMAGE_TASK = 1;
-        public const short DELETE_IMAGE_TASK = 2;
-        public const short GRAY_IMAGE_TASK = 3;
-        public const short HUE_IMAGE_TASK = 4;
-        public const short FACE_IMAGE_TASK = 5;
-
-    }
 
     public partial class MainWindow : System.Windows.Window
     {
         //Task Flag
-        private int task_flag = Constants.NO_TASK;
+        private Constants cont = new Constants();
         private string resource_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Resources\\";
         //public string captured_image_dir = "R:\\Temp\\";
         private string captured_image_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Image\\";
@@ -40,7 +30,6 @@ namespace VeManagerApp
         private string config_texts;
         private String current_app_dir = GetCurrentAppDir();
         private CascadeClassifier cascade = new CascadeClassifier();
-        private object task_flag_key = new object();
 
         public MainWindow()
         {
@@ -52,7 +41,6 @@ namespace VeManagerApp
 
             try
             {
-
                 String cascade_path = cascade_dir + "\\" + "haarcascade_frontalface_alt2.xml";
                 cascade.Load(cascade_path);
 
@@ -66,34 +54,41 @@ namespace VeManagerApp
             }
             InitializeComponent();
 
-
         }
 
         private void show_image(object sender, RoutedEventArgs e)
         {
             ShowButton.IsEnabled = false;
             double show_comp_rate = 0.5;
-            lock (task_flag_key)
-            {
-                this.task_flag = Constants.SHOW_IMAGE_TASK;
-            }
+            cont.change_task(Constants.SHOW_IMAGE_TASK);
 
             try
             {
 
-                while (this.task_flag == Constants.SHOW_IMAGE_TASK)
+                while (cont.getCurrentTask() == Constants.SHOW_IMAGE_TASK)
                 {
                     DateTime dt = DateTime.Now;
-                    String image = dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
-                    Mat mat;
+                    String current_image_name = dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
+                    String show_image_path = resource_dir + current_image_name + ".png";
+                    FrameData fd;
 
-                    String show_image_path = resource_dir + image + ".png";
-                    String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
+                    String current_image_path;
 
                     try
                     {
-                        mat = Cv2.ImRead(current_image_path);
+                        current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
+                    }
+                    catch (Exception get_name_error)
+                    {
+                        Console.WriteLine(get_name_error);
+                        DoEvents();
+                        continue;
 
+                    }
+
+                    try
+                    {
+                        fd = new FrameData(current_image_path);
 
                     }
                     catch (Exception opencv_read_error)
@@ -106,8 +101,7 @@ namespace VeManagerApp
 
                     try
                     {
-                        /* image resize */
-                        Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, show_comp_rate, show_comp_rate);
+                        fd.ResizeFrame(show_comp_rate);
 
                     }
                     catch (Exception opencv_resize_error)
@@ -120,7 +114,7 @@ namespace VeManagerApp
 
                     try
                     {
-                        Cv2.ImWrite(show_image_path, mat);
+                        fd.WriteFrame(show_image_path);
 
                     }
                     catch (Exception opencv_write_error)
@@ -132,23 +126,21 @@ namespace VeManagerApp
                     }
 
                     //lock less bitmap
-                    MemoryStream data = new MemoryStream(File.ReadAllBytes(show_image_path));
-                    WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
-                    data.Close();
-                    this.MainImage.Source = wbmp;
-                    File.Delete(show_image_path);
+                    this.MainImage.Source = fd.ReadWriteableBitmap(show_image_path);
                     DoEvents();
 
                 }
             }
             catch
             {
-                ShowButton.IsEnabled = true;
+                throw;
 
             }
             finally
             {
                 ShowButton.IsEnabled = true;
+                cont.init();
+                DoEvents();
 
             }
 
@@ -156,11 +148,7 @@ namespace VeManagerApp
 
         private void delete_image(object sender, RoutedEventArgs e)
         {
-            lock (task_flag_key)
-            {
-                this.task_flag = Constants.DELETE_IMAGE_TASK;
-            }
-
+            cont.init();
             var source = new BitmapImage();
             MainImage.Source = source;
             BaseImage.Source = source;
@@ -170,27 +158,26 @@ namespace VeManagerApp
 
         }
 
-        private void grayscale_image(object sender, RoutedEventArgs e)
+        private void cinelite_image(object sender, RoutedEventArgs e)
         {
-            GrayButton.IsEnabled = false;
-            double grayscale_comp_rate = 0.5;
+            CineButton.IsEnabled = false;
+            double cinelite_comp_rate = 0.5;
             double conv_percent_to_sig = 0.39215686274;
-            lock (task_flag_key)
-            {
-                this.task_flag = Constants.GRAY_IMAGE_TASK;
-            }
+
+            double LeftBlue = 0;
+            double RightBlue = 0;
+            double LeftRed = 0;
+            double RightRed = 0;
+            double LeftGreen = 0;
+            double RightGreen = 0;
+
+            cont.change_task(Constants.CINE_IMAGE_TASK);
+
 
             try
             {
-                while (this.task_flag == Constants.GRAY_IMAGE_TASK)
+                while (cont.getCurrentTask() == Constants.CINE_IMAGE_TASK)
                 {
-
-                    double LeftBlue = 0;
-                    double RightBlue = 0;
-                    double LeftRed = 0;
-                    double RightRed = 0;
-                    double LeftGreen = 0;
-                    double RightGreen = 0;
 
                     try
                     {
@@ -209,12 +196,11 @@ namespace VeManagerApp
                     }
 
                     DateTime s_dt = DateTime.Now;
-                    String image = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
+                    String current_image_name = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
                     String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
-
-                    Mat mat;
-                    String grayscale_image_path = resource_dir + image + ".png";
+                    String cinelite_image_path = resource_dir + current_image_name + ".png";
                     String current_image_path;
+                    FrameData fd;
                     
                     try
                     {
@@ -230,7 +216,7 @@ namespace VeManagerApp
 
                     try
                     {
-                        mat = Cv2.ImRead(current_image_path);
+                        fd = new FrameData(current_image_path);
 
                     }
                     catch (Exception opencv_read_error)
@@ -244,7 +230,7 @@ namespace VeManagerApp
                     try
                     {
                         /* image resize */
-                        Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, grayscale_comp_rate, grayscale_comp_rate);
+                        fd.ResizeFrame(cinelite_comp_rate);
 
                     }
                     catch (Exception opencv_resize_error)
@@ -255,69 +241,11 @@ namespace VeManagerApp
 
                     }
 
-                    // gamma補正値 2.2
-                    //double LtoGamma = 1 / 2.2;
-
-                    unsafe
-                    {
-                        MatForeachFunctionVec3b del_grayscale_func;
-                        del_grayscale_func = delegate (Vec3b* px, int* position)
-                        {
-                            /*ガンマ返還を考慮した式*/
-                            // BGRを逆ガンマ補正（低輝度部分の差は捨てる）
-                            //double lpx_b = Math.Pow((double)px->Item0 / 255.0, 2.2) * 255;
-                            //double lpx_g = Math.Pow((double)px->Item1 / 255.0, 2.2) * 255;
-                            //double lpx_r = Math.Pow((double)px->Item2 / 255.0, 2.2) * 255;
-
-                            //BT.601 V = 0.183R + 0.614G + 0.062B + 16
-                            //BT.709 V = 0.2126 * R + 0.7152 * G + 0.0722 * B
-
-                            // Y信号化 => BT.709
-                            //double linear_y_sig = 0.2126 * lpx_r + 0.7152 * lpx_g + 0.0722 * lpx_b;
-
-                            // Gamma補正
-                            //double gamma_y_sig = Math.Pow((double)linear_y_sig / 255.0, LtoGamma) * 255;
-                            // 放送規格のHD-SDIならば 1bit per 0.45662100456%のY信号レベル, 70%は16+153.3=169.3
-                            //画像規格sRGBならば255階調なので、100% / 255 = 0.39215686%
-
-                            /* Gamma処理を行わずに計算した場合(DeckLinkがPNGの際にやってくれている?) */
-                            double linear_y_sig = 0.2126 * (double)px->Item2 + 0.7152 * (double)px->Item1 + 0.0722 * (double)px->Item0;
-
-                            if (LeftRed >= linear_y_sig && linear_y_sig >= RightRed)
-                            {
-                                px->Item0 = 0;
-                                px->Item1 = 0;
-                                px->Item2 = 240;
-
-                            }
-                            else if (LeftBlue >= linear_y_sig && linear_y_sig >= RightBlue)
-                            {
-                                px->Item0 = 200;
-                                px->Item1 = 0;
-                                px->Item2 = 0;
-
-                            }
-                            else if (LeftGreen >= linear_y_sig && linear_y_sig >= RightGreen)
-                            {
-                                px->Item0 = 0;
-                                px->Item1 = 180;
-                                px->Item2 = 0;
-                            }
-                            else //GrayScale
-                            {
-                                px->Item0 = (byte)linear_y_sig;
-                                px->Item1 = (byte)linear_y_sig;
-                                px->Item2 = (byte)linear_y_sig;
-
-                            }
-                        };
-                        mat.ForEachAsVec3b(del_grayscale_func);
-
-                    };
+                    fd.cine_convert(LeftBlue, RightBlue, LeftRed, RightRed, LeftGreen, RightGreen);
 
                     try
                     {
-                        Cv2.ImWrite(grayscale_image_path, mat);
+                        fd.WriteFrame(cinelite_image_path);
                     }
                     catch (Exception opencv_write_error)
                     {
@@ -327,28 +255,24 @@ namespace VeManagerApp
 
                     }
 
-                    //lock less bitmap
-                    MemoryStream data = new MemoryStream(File.ReadAllBytes(grayscale_image_path));
-                    WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
-                    data.Close();
-                    this.MainImage.Source = wbmp;
+                    this.MainImage.Source = fd.ReadWriteableBitmap(cinelite_image_path);
 
                     DateTime e_dt = DateTime.Now;
                     String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
-
-                    File.Delete(grayscale_image_path);
                     DoEvents();
 
                 }
             }
             catch
             {
-                GrayButton.IsEnabled = true;
+                throw;
 
             }
             finally
             {
-                GrayButton.IsEnabled = true;
+                CineButton.IsEnabled = true;
+                cont.init();
+                DoEvents();
 
             }
 
@@ -357,30 +281,51 @@ namespace VeManagerApp
         private void face_image(object sender, RoutedEventArgs e)
         {
             FaceButton.IsEnabled = false;
-            lock (task_flag_key)
-            {
-                this.task_flag = Constants.FACE_IMAGE_TASK;
-            }
+            double face_comp_rate = 0.5;
+
+            //cinelite parameter
+            double conv_percent_to_sig = 0.39215686274;
+            double LeftBlue = 0;
+            double RightBlue = 0;
+            double LeftRed = 0;
+            double RightRed = 0;
+            double LeftGreen = 0;
+            double RightGreen = 0;
+
+            cont.change_task(Constants.FACE_IMAGE_TASK);
 
             try
             {
-                while (this.task_flag == Constants.FACE_IMAGE_TASK)
+                while (cont.getCurrentTask() == Constants.FACE_IMAGE_TASK)
                 {
-                    DateTime dt = DateTime.Now;
-                    String image = dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
-                    String str_date = dt.ToString("yyyy/MM/dd-HH:mm:ss");
-                    Mat OriginMat;
-                    Mat GrayMat;
-                    Mat FaceMat;
+                    DateTime s_dt = DateTime.Now;
+                    String current_image_name = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
+                    String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss");
+                    FrameData OriginFrame, GrayFrame, FaceFrame;
                     OpenCvSharp.Rect[] FaceRects;
-                    //bool detect_flag = false;
-
-                    String face_image_path = resource_dir + image + ".png";
+                    String cinelite_image_path = resource_dir + current_image_name + ".png";
+                    String face_image_path = resource_dir + current_image_name + "_face.png";
                     String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
 
                     try
                     {
-                        OriginMat = Cv2.ImRead(current_image_path);
+                        LeftBlue = int.Parse(textLeftBlue.Text) / conv_percent_to_sig;
+                        RightBlue = int.Parse(textRightBlue.Text) / conv_percent_to_sig;
+                        LeftRed = int.Parse(textLeftRed.Text) / conv_percent_to_sig;
+                        RightRed = int.Parse(textRightRed.Text) / conv_percent_to_sig;
+                        LeftGreen = int.Parse(textLeftGreen.Text) / conv_percent_to_sig;
+                        RightGreen = int.Parse(textRightGreen.Text) / conv_percent_to_sig;
+
+                    }
+                    catch (Exception catch_color_border_data)
+                    {
+                        Console.WriteLine(catch_color_border_data);
+
+                    }
+
+                    try
+                    {
+                        OriginFrame = new FrameData(current_image_path);
 
                     }
                     catch (Exception opencv_read_error)
@@ -393,8 +338,9 @@ namespace VeManagerApp
 
                     try
                     {
-                        /* 処理コストのために画素数を1/16にする */
-                        Cv2.Resize(OriginMat, OriginMat, OpenCvSharp.Size.Zero, 0.334, 0.334);
+                        /* resize image */
+                        OriginFrame.ResizeFrame(face_comp_rate);
+
                     }
                     catch (Exception opencv_resize_error)
                     {
@@ -406,7 +352,8 @@ namespace VeManagerApp
 
                     try
                     {
-                        GrayMat = OriginMat.CvtColor(ColorConversionCodes.BGR2GRAY);
+                        Mat tmp_mat = OriginFrame.getFrameMat();
+                        GrayFrame = new FrameData(tmp_mat.CvtColor(ColorConversionCodes.BGR2GRAY));
 
                     }
                     catch (Exception opencv_cvt_error)
@@ -417,9 +364,23 @@ namespace VeManagerApp
 
                     }
 
+                    OriginFrame.cine_convert(LeftBlue, RightBlue, LeftRed, RightRed, LeftGreen, RightGreen);
+
                     try
                     {
-                        FaceRects = cascade.DetectMultiScale(GrayMat);
+                        OriginFrame.WriteFrame(cinelite_image_path);
+                    }
+                    catch (Exception opencv_write_error)
+                    {
+                        Console.WriteLine(opencv_write_error);
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    try
+                    {
+                        FaceRects = cascade.DetectMultiScale(GrayFrame.getFrameMat());
 
                     }
                     catch (Exception face_detect_error)
@@ -432,14 +393,14 @@ namespace VeManagerApp
 
                     if (FaceRects.Length > 0)
                     {
-                        //detect_flag = true;
                         Console.WriteLine("Face Detection Done.");
                         OpenCvSharp.Rect FaceRect = FaceRects[0];
-                        FaceMat = OriginMat.Clone(FaceRect);
+                        Mat tmp_mat = OriginFrame.getFrameMat().Clone(FaceRect);
+                        FaceFrame = new FrameData(tmp_mat);
 
                         try
                         {
-                            Cv2.ImWrite(face_image_path, FaceMat);
+                            FaceFrame.WriteFrame(face_image_path);
 
                         }
                         catch (Exception opencv_write_error)
@@ -460,75 +421,111 @@ namespace VeManagerApp
 
                     }
 
-                    //face image
-                    MemoryStream data = new MemoryStream(File.ReadAllBytes(face_image_path));
-                    WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
-                    data.Close();
-                    this.BaseImage.Source = wbmp;
-
-                    File.Delete(face_image_path);
+                    this.MainImage.Source = OriginFrame.ReadWriteableBitmap(cinelite_image_path);
+                    this.BaseImage.Source = FaceFrame.ReadWriteableBitmap(face_image_path);
                     DoEvents();
 
                 }
             }
             catch
             {
-                FaceButton.IsEnabled = true;
+                throw;
 
             }
             finally
             {
                 FaceButton.IsEnabled = true;
+                cont.init();
+                DoEvents();
 
             }
         }
 
         
+        /* HUE Detect で Saturationと第何象限かを比較(象限のほうは今後修正する). Saturationは正規化し, %になおす必要がある. */
+
         private void hue_image(object sender, RoutedEventArgs e)
         {
             HueButton.IsEnabled = false;
             double hue_comp_rate = 0.5;
-            lock (task_flag_key)
-            {
-                this.task_flag = Constants.HUE_IMAGE_TASK;
-            }
+            cont.change_task(Constants.HUE_IMAGE_TASK);
 
             try
             {
 
                 String base_image_path = resource_dir + "base_image.png";
                 String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
+                FrameData CaptureFrame, BaseFrame;
 
-                Mat cap_mat = Cv2.ImRead(current_image_path);
-                Cv2.Resize(cap_mat, cap_mat, OpenCvSharp.Size.Zero, hue_comp_rate, hue_comp_rate);
-                Cv2.ImWrite(base_image_path, cap_mat);
-
-                //lock less bitmap
-                MemoryStream base_data = new MemoryStream(File.ReadAllBytes(base_image_path));
-                WriteableBitmap base_wbmp = new WriteableBitmap(BitmapFrame.Create(base_data));
-                base_data.Close();
-                this.BaseImage.Source = base_wbmp;
-                System.Threading.Thread.Sleep(1);
-
-                Mat base_mat = new Mat();
                 try
                 {
-                    base_mat = Cv2.ImRead(base_image_path);
+                    CaptureFrame = new FrameData(current_image_path);
 
                 }
                 catch (Exception opencv_read_error)
                 {
                     Console.WriteLine(opencv_read_error);
                     DoEvents();
+                    return;
 
                 }
+
+                try
+                {
+                    CaptureFrame.WriteFrame(base_image_path);
+
+                }
+                catch (Exception opencv_write_error)
+                {
+                    Console.WriteLine(opencv_write_error);
+                    DoEvents();
+
+                }
+
+                BaseFrame = new FrameData(CaptureFrame.getFrameMat());
+
+                try
+                {
+                    /* resize image */
+                    BaseFrame.ResizeFrame(hue_comp_rate);
+
+                }
+                catch (Exception opencv_resize_error)
+                {
+                    Console.WriteLine(opencv_resize_error);
+                    DoEvents();
+
+                }
+
+                BaseFrame.hue_detect_convert(0);
+
+                try
+                {
+                    BaseFrame.WriteFrame(base_image_path);
+
+                }
+                catch (Exception opencv_write_error)
+                {
+                    Console.WriteLine(opencv_write_error);
+                    DoEvents();
+
+                }
+
+                this.BaseImage.Source = BaseFrame.ReadWriteableBitmap(base_image_path);
+                Vec2d base_point = BaseFrame.ave_point_cal();
+
+
+                System.Threading.Thread.Sleep(1);
+
+
+                //以下, HUEの比較計算処理
 
                 HueText.Inlines.Clear();
                 HueText.FontSize = 24;
                 HueText.Inlines.Add(new Bold(new Run("基準画像と現在画像の色ズレ")));
                 HueText.TextAlignment = TextAlignment.Center;
 
-                while (this.task_flag == Constants.HUE_IMAGE_TASK)
+                while (cont.getCurrentTask() == Constants.HUE_IMAGE_TASK)
                 {
 
                     DateTime s_dt = DateTime.Now;
@@ -536,16 +533,12 @@ namespace VeManagerApp
                     String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
                     String hue_image_path = resource_dir + image + ".png";
                     current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
-                    Mat current_mat;
-                    Mat differ_mat = new Mat(0, 0, OpenCvSharp.MatType.CV_64FC3);
-
-                    int sum_px = 0;
-                    double ave_X_point = 0;
-                    double ave_Y_point = 0;
+                    FrameData CurrentFrame;
+                    double dif_Y_point = 0, dif_X_point = 0;
 
                     try
                     {
-                        current_mat = Cv2.ImRead(current_image_path);
+                        CurrentFrame = new FrameData(current_image_path);
 
                     }
                     catch(Exception opencv_read_error)
@@ -558,7 +551,8 @@ namespace VeManagerApp
 
                     try
                     {
-                        Cv2.Resize(current_mat, current_mat, OpenCvSharp.Size.Zero, hue_comp_rate, hue_comp_rate);
+                        CurrentFrame.ResizeFrame(hue_comp_rate);
+
                     }
                     catch (Exception current_mat_resize_error)
                     {
@@ -567,56 +561,12 @@ namespace VeManagerApp
                         continue;
 
                     }
-                    
-                    try
-                    {
-                        unsafe
-                        {
-                            
-                            MatForeachFunctionVec3b del_hue_detect_func;
-                            del_hue_detect_func = delegate (Vec3b* px, int* position)
-                            {
 
-                                // Gamma処理を行わずに計算した場合(DeckLinkがPNGの際にやってくれている?) .. BGRに注意
-                                
-                                byte b_px = px->Item0;
-                                byte g_px = px->Item1;
-                                byte r_px = px->Item2;
-
-                                //Y, R-Y, B-Yを計算
-                                double linear_y_sig = 0.2126 * r_px + 0.7152 * g_px + 0.0722 * b_px;
-                                double R_Y = r_px - linear_y_sig;
-                                double B_Y = b_px - linear_y_sig;
-
-                                if ((R_Y < 0) && (B_Y > 0))
-                                {
-                                    ;
-                                }
-                                else
-                                {
-                                    px->Item0 = 0;
-                                    px->Item1 = 0;
-                                    px->Item2 = 0;
-
-                                }
-
-                            };
-                            current_mat.ForEachAsVec3b(del_hue_detect_func);
-                            base_mat.ForEachAsVec3b(del_hue_detect_func);
-
-                        };
-                    }
-                    catch(Exception cal_error)
-                    {
-                        Console.WriteLine(cal_error);
-                        DoEvents();
-                        continue;
-
-                    }
+                    CurrentFrame.hue_detect_convert(0);
 
                     try
                     {
-                        Cv2.ImWrite(hue_image_path, current_mat);
+                        CurrentFrame.WriteFrame(hue_image_path);
 
                     }
                     catch (Exception opencv_write_error)
@@ -627,68 +577,13 @@ namespace VeManagerApp
 
                     }
 
-                    //lock less bitmap
-                    MemoryStream data = new MemoryStream(File.ReadAllBytes(hue_image_path));
-                    WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
-                    data.Close();
-                    this.MainImage.Source = wbmp;
-                    File.Delete(hue_image_path);
+                    this.MainImage.Source = CurrentFrame.ReadWriteableBitmap(hue_image_path);
+                    Vec2d current_point = CurrentFrame.ave_point_cal();
 
-
-                    //差分計算
-                    try
-                    {
-                        differ_mat = current_mat - base_mat;
-
-                    }
-                    catch (Exception dif_error)
-                    {
-                        Console.WriteLine(dif_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    for (int y = 0; y < differ_mat.Rows; y++)
-                    {
-                        for (int x = 0; x < differ_mat.Cols; x++)
-                        {
-                            Vec3d point = differ_mat.At<Vec3d>(y, x);
-                            Vec3b current_point = current_mat.At<Vec3b>(y, x);
-                            double r_px = point.Item2;
-                            double g_px = point.Item1;
-                            double b_px = point.Item0;
-
-                            //Y, R-Y, B-Yを計算
-                            double linear_y_sig = 0.2126 * r_px + 0.7152 * g_px + 0.0722 * b_px;
-                            double R_Y = r_px - linear_y_sig;
-                            double B_Y = b_px - linear_y_sig;
-
-                            //該当のPXの場合にはインクリメントし、計算
-                            if ((current_point.Item1 == 0) && (current_point.Item2 == 0))
-                            {
-                                sum_px++;
-                                ave_Y_point = ave_Y_point + R_Y;
-                                ave_X_point = ave_X_point + B_Y;
-
-                            }
-                        }
-                    }
-
-
-                    //differ_matに対して平均を計算
-                    /*
-                    Cv2.Reduce(differ_mat, differ_mat, OpenCvSharp.ReduceDimension.Column, OpenCvSharp.ReduceTypes.Avg, -1);
-                    Cv2.Reduce(differ_mat, differ_mat, OpenCvSharp.ReduceDimension.Row, OpenCvSharp.ReduceTypes.Avg, -1);
-
-                    ave_X_point = differ_mat.At<Vec3d>(0, 0).Item2;
-                    ave_Y_point = differ_mat.At<Vec3d>(0, 0).Item1;
-                    */
-
-                    ave_Y_point = ave_Y_point / sum_px;
-                    ave_X_point = ave_X_point / sum_px;
-                    ave_X_point = Math.Round(ave_X_point, 1, MidpointRounding.AwayFromZero);
-                    ave_Y_point = Math.Round(ave_Y_point, 1, MidpointRounding.AwayFromZero);
+                    dif_Y_point = current_point.Item0 - base_point.Item0;
+                    dif_X_point = current_point.Item1 - base_point.Item1;
+                    dif_X_point = Math.Round(dif_X_point, 1, MidpointRounding.AwayFromZero);
+                    dif_Y_point = Math.Round(dif_Y_point, 1, MidpointRounding.AwayFromZero);
                     
 
                     DateTime e_dt = DateTime.Now;
@@ -699,7 +594,7 @@ namespace VeManagerApp
                     // 結果表示
                     HueTextRed.Inlines.Clear();
                     HueTextRed.Inlines.Add(new Run("赤色ずれ(Y軸) "));
-                    HueTextRed.Inlines.Add(ave_Y_point.ToString());
+                    HueTextRed.Inlines.Add(dif_Y_point.ToString());
                     HueTextRed.Inlines.Add("%");
                     HueTextRed.FontSize = 30;
                     HueTextRed.TextAlignment = TextAlignment.Center;
@@ -707,7 +602,7 @@ namespace VeManagerApp
 
                     HueTextBlue.Inlines.Clear();
                     HueTextBlue.Inlines.Add(new Run("青色ずれ(X軸) "));
-                    HueTextBlue.Inlines.Add(ave_X_point.ToString());
+                    HueTextBlue.Inlines.Add(dif_X_point.ToString());
                     HueTextBlue.Inlines.Add("%");
                     HueTextBlue.FontSize = 30;
                     HueTextBlue.TextAlignment = TextAlignment.Center;
@@ -720,10 +615,7 @@ namespace VeManagerApp
             }
             catch
             {
-                HueButton.IsEnabled = true;
-                HueText.Inlines.Clear();
-                HueTextRed.Inlines.Clear();
-                HueTextBlue.Inlines.Clear();
+                throw;
 
             }
             finally
@@ -732,11 +624,12 @@ namespace VeManagerApp
                 HueText.Inlines.Clear();
                 HueTextRed.Inlines.Clear();
                 HueTextBlue.Inlines.Clear();
+                cont.init();
+                DoEvents();
 
             }
 
         }
-        
 
         // ↓ ここから独自開発のDoEvents()
         private void DoEvents()

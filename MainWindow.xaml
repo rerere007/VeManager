@@ -16,8 +16,8 @@
         <Border BorderBrush="Black" BorderThickness="2,2,2,2" HorizontalAlignment="Left" Height="106" Margin="689,488,0,0" VerticalAlignment="Top" Width="542"/>
         <Button x:Name="ShowButton" Content="加工なし映像" HorizontalAlignment="Left" Margin="689,422,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="show_image" FontFamily="Yu Gothic UI" BorderThickness="2" BorderBrush="Black"/>
 
-        <Button x:Name="DeleteButton" Content="リセット" HorizontalAlignment="Left" Margin="1117,420,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="delete_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
-        <Button x:Name="GrayButton" Content="輝度ペイント加工" HorizontalAlignment="Left" Margin="829,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="grayscale_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
+        <Button x:Name="DeleteButton" Content="停止" HorizontalAlignment="Left" Margin="1117,420,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="delete_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
+        <Button x:Name="CineButton" Content="輝度ペイント" HorizontalAlignment="Left" Margin="829,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="cinelite_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
         <Button x:Name="FaceButton" Content="顔検出" HorizontalAlignment="Left" Margin="972,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="face_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
         <Image x:Name="MainImage" HorizontalAlignment="Left" Height="350" Margin="54,68,0,0" VerticalAlignment="Top" Width="622" />
 
