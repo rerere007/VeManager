@@ -31,17 +31,15 @@ namespace VeManagerApp
 
     public partial class MainWindow : System.Windows.Window
     {
-        //Reactive Propertyは結局使い方がよくわからなかった. 描写できていない
-        public ReactiveProperty<WriteableBitmap> rp_image { set; get; } = new ReactiveProperty<WriteableBitmap>();
         //Task Flag
-        public int task_flag = Constants.NO_TASK;
-        public string resource_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Resources\\";
+        private int task_flag = Constants.NO_TASK;
+        private string resource_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Resources\\";
         //public string captured_image_dir = "R:\\Temp\\";
-        public string captured_image_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Image\\";
-        string filename;
-        string texts;
-        String current_app_dir = GetCurrentAppDir();
-        CascadeClassifier cascade = new CascadeClassifier();
+        private string captured_image_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Image\\";
+        private string config_filename;
+        private string config_texts;
+        private String current_app_dir = GetCurrentAppDir();
+        private CascadeClassifier cascade = new CascadeClassifier();
         private object task_flag_key = new object();
 
         public MainWindow()
@@ -74,6 +72,7 @@ namespace VeManagerApp
         private void show_image(object sender, RoutedEventArgs e)
         {
             ShowButton.IsEnabled = false;
+            double show_comp_rate = 0.5;
             lock (task_flag_key)
             {
                 this.task_flag = Constants.SHOW_IMAGE_TASK;
@@ -100,7 +99,6 @@ namespace VeManagerApp
                     catch (Exception opencv_read_error)
                     {
                         Console.WriteLine(opencv_read_error);
-                        Console.WriteLine("Catched the exception in line 83");
                         DoEvents();
                         continue;
 
@@ -108,14 +106,13 @@ namespace VeManagerApp
 
                     try
                     {
-                        /* 処理コストのために画素数を1/16にする */
-                        Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, 0.334, 0.334);
+                        /* image resize */
+                        Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, show_comp_rate, show_comp_rate);
 
                     }
                     catch (Exception opencv_resize_error)
                     {
                         Console.WriteLine(opencv_resize_error);
-                        Console.WriteLine("Catched the exception in line 97");
                         DoEvents();
                         continue;
 
@@ -129,7 +126,6 @@ namespace VeManagerApp
                     catch (Exception opencv_write_error)
                     {
                         Console.WriteLine(opencv_write_error);
-                        Console.WriteLine("Catched the exception in line 205");
                         DoEvents();
                         continue;
 
@@ -141,7 +137,6 @@ namespace VeManagerApp
                     data.Close();
                     this.MainImage.Source = wbmp;
                     File.Delete(show_image_path);
-                    Console.WriteLine(this.task_flag);
                     DoEvents();
 
                 }
@@ -178,6 +173,7 @@ namespace VeManagerApp
         private void grayscale_image(object sender, RoutedEventArgs e)
         {
             GrayButton.IsEnabled = false;
+            double grayscale_comp_rate = 0.5;
             double conv_percent_to_sig = 0.39215686274;
             lock (task_flag_key)
             {
@@ -227,7 +223,6 @@ namespace VeManagerApp
                     catch (Exception get_name_error)
                     {
                         Console.WriteLine(get_name_error);
-                        Console.WriteLine("Catched the exception in line 140");
                         DoEvents();
                         continue;
 
@@ -241,7 +236,6 @@ namespace VeManagerApp
                     catch (Exception opencv_read_error)
                     {
                         Console.WriteLine(opencv_read_error);
-                        Console.WriteLine("Catched the exception in line 188");
                         DoEvents();
                         continue;
 
@@ -249,15 +243,13 @@ namespace VeManagerApp
 
                     try
                     {
-                        /* 処理コストのために画素数を1/16にする */
-                        Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, 0.334, 0.334);
-                        //Mat matGray = mat.CvtColor(ColorConversionCodes.BGR2GRAY);
+                        /* image resize */
+                        Cv2.Resize(mat, mat, OpenCvSharp.Size.Zero, grayscale_comp_rate, grayscale_comp_rate);
 
                     }
                     catch (Exception opencv_resize_error)
                     {
                         Console.WriteLine(opencv_resize_error);
-                        Console.WriteLine("Catched the exception in line 205");
                         DoEvents();
                         continue;
 
@@ -323,8 +315,6 @@ namespace VeManagerApp
 
                     };
 
-                    //byte[] image_bytes = new byte[mat.Total()];
-                    //Marshal.Copy(mat.Data, image_bytes, 0, image_bytes.Length);
                     try
                     {
                         Cv2.ImWrite(grayscale_image_path, mat);
@@ -332,7 +322,6 @@ namespace VeManagerApp
                     catch (Exception opencv_write_error)
                     {
                         Console.WriteLine(opencv_write_error);
-                        Console.WriteLine("Catched the exception in line 205");
                         DoEvents();
                         continue;
 
@@ -343,17 +332,12 @@ namespace VeManagerApp
                     WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
                     data.Close();
                     this.MainImage.Source = wbmp;
-                    //rp_image.Value = wbmp;
-
 
                     DateTime e_dt = DateTime.Now;
                     String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
 
                     File.Delete(grayscale_image_path);
-                    Console.WriteLine(this.task_flag);
                     DoEvents();
-                    System.Threading.Thread.Sleep(100);
-
 
                 }
             }
@@ -402,7 +386,6 @@ namespace VeManagerApp
                     catch (Exception opencv_read_error)
                     {
                         Console.WriteLine(opencv_read_error);
-                        Console.WriteLine("Catched the exception in line 83");
                         DoEvents();
                         continue;
 
@@ -416,7 +399,6 @@ namespace VeManagerApp
                     catch (Exception opencv_resize_error)
                     {
                         Console.WriteLine(opencv_resize_error);
-                        Console.WriteLine("Catched the exception in line 97");
                         DoEvents();
                         continue;
 
@@ -430,7 +412,6 @@ namespace VeManagerApp
                     catch (Exception opencv_cvt_error)
                     {
                         Console.WriteLine(opencv_cvt_error);
-                        Console.WriteLine("Catched the exception in line 434");
                         DoEvents();
                         continue;
 
@@ -444,13 +425,10 @@ namespace VeManagerApp
                     catch (Exception face_detect_error)
                     {
                         Console.WriteLine(face_detect_error);
-                        Console.WriteLine("Catched the exception in line aa");
                         DoEvents();
                         continue;
 
                     }
-
-                    Console.WriteLine("Break Point");
 
                     if (FaceRects.Length > 0)
                     {
@@ -467,7 +445,6 @@ namespace VeManagerApp
                         catch (Exception opencv_write_error)
                         {
                             Console.WriteLine(opencv_write_error);
-                            Console.WriteLine("Catched the exception in line 205");
                             DoEvents();
                             continue;
 
@@ -483,8 +460,6 @@ namespace VeManagerApp
 
                     }
 
-                    
-
                     //face image
                     MemoryStream data = new MemoryStream(File.ReadAllBytes(face_image_path));
                     WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
@@ -492,7 +467,6 @@ namespace VeManagerApp
                     this.BaseImage.Source = wbmp;
 
                     File.Delete(face_image_path);
-                    Console.WriteLine(this.task_flag);
                     DoEvents();
 
                 }
@@ -545,7 +519,6 @@ namespace VeManagerApp
                 catch (Exception opencv_read_error)
                 {
                     Console.WriteLine(opencv_read_error);
-                    Console.WriteLine("Catched the exception in line 280");
                     DoEvents();
 
                 }
@@ -578,7 +551,6 @@ namespace VeManagerApp
                     catch(Exception opencv_read_error)
                     {
                         Console.WriteLine(opencv_read_error);
-                        Console.WriteLine("Catched the exception in line 280");
                         DoEvents();
                         continue;
 
@@ -591,7 +563,6 @@ namespace VeManagerApp
                     catch (Exception current_mat_resize_error)
                     {
                         Console.WriteLine(current_mat_resize_error);
-                        Console.WriteLine("Catched the exception in line 396");
                         DoEvents();
                         continue;
 
@@ -638,7 +609,6 @@ namespace VeManagerApp
                     catch(Exception cal_error)
                     {
                         Console.WriteLine(cal_error);
-                        Console.WriteLine("line 671");
                         DoEvents();
                         continue;
 
@@ -652,7 +622,6 @@ namespace VeManagerApp
                     catch (Exception opencv_write_error)
                     {
                         Console.WriteLine(opencv_write_error);
-                        Console.WriteLine("Catched the exception in line 295");
                         DoEvents();
                         continue;
 
@@ -675,7 +644,6 @@ namespace VeManagerApp
                     catch (Exception dif_error)
                     {
                         Console.WriteLine(dif_error);
-                        Console.WriteLine("line 684");
                         DoEvents();
                         continue;
 
@@ -771,7 +739,7 @@ namespace VeManagerApp
         
 
         // ↓ ここから独自開発のDoEvents()
-        public void DoEvents()
+        private void DoEvents()
         {
             DispatcherFrame frame = new DispatcherFrame();
             Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background,
@@ -779,13 +747,13 @@ namespace VeManagerApp
             Dispatcher.PushFrame(frame);
         }
 
-        public object ExitFrames(object f)
+        private object ExitFrames(object f)
         {
             ((DispatcherFrame)f).Continue = false;
             return null;
         }
 
-        public string getNewestFileName(string folderName)
+        private string getNewestFileName(string folderName)
         {
             // 指定されたフォルダ内のdatファイル名をすべて取得する
             string[] files = System.IO.Directory.GetFiles(folderName, "*.png", System.IO.SearchOption.TopDirectoryOnly);
@@ -829,10 +797,10 @@ namespace VeManagerApp
             //新規書き込みクラスのインスタンス化
             TextWrite textWrite = new TextWrite();
 
-            filename = WriteFileName.Text.ToString();
-            texts = textLeftRed.Text + "," + textRightRed.Text + "," + textLeftGreen.Text + "," + textRightGreen.Text + "," + textLeftBlue.Text + "," + textRightBlue.Text;
+            config_filename = WriteFileName.Text.ToString();
+            config_texts = textLeftRed.Text + "," + textRightRed.Text + "," + textLeftGreen.Text + "," + textRightGreen.Text + "," + textLeftBlue.Text + "," + textRightBlue.Text;
 
-            textWrite.Write(filename, texts);
+            textWrite.Write(config_filename, config_texts);
         }
 
         //読み込み
@@ -841,9 +809,9 @@ namespace VeManagerApp
             //読み込みクラスのインスタンス化
             ReadText readText = new ReadText();
 
-            filename = ReadFileName.Text.ToString();
+            config_filename = ReadFileName.Text.ToString();
 
-            String FileContent = readText.Read(filename);
+            String FileContent = readText.Read(config_filename);
             string[] ParameterArray = FileContent.Split(',');
             if (ParameterArray.Length != 6)
             {
@@ -864,12 +832,12 @@ namespace VeManagerApp
 
         }
 
-        public static string GetCurrentAppDir()
+        private static string GetCurrentAppDir()
         {
             return System.IO.Path.GetDirectoryName(
                 System.Reflection.Assembly.GetExecutingAssembly().Location);
         }
-        public static DirectoryInfo SafeCreateDirectory(string path)
+        private static DirectoryInfo SafeCreateDirectory(string path)
         {
             if (Directory.Exists(path))
             {
