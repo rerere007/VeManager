@@ -580,8 +580,9 @@ namespace VeManagerApp
                     this.MainImage.Source = CurrentFrame.ReadWriteableBitmap(hue_image_path);
                     Vec2d current_point = CurrentFrame.ave_point_cal();
 
-                    dif_Y_point = current_point.Item0 - base_point.Item0;
-                    dif_X_point = current_point.Item1 - base_point.Item1;
+                    /* 0.7874 * 255 がY軸MAX, 0.9278 * 255 がX軸MAX => (200.787, 236.589)　本来はR/Bのベクトル方程式を解いてR/Bの二軸で表現する必要がある */
+                    dif_X_point = (current_point.Item1 - base_point.Item1) * 100 / 236.589; // X軸%表記
+                    dif_Y_point = (current_point.Item0 - base_point.Item0) * 100 / 200.787; // Y軸%表記
                     dif_X_point = Math.Round(dif_X_point, 1, MidpointRounding.AwayFromZero);
                     dif_Y_point = Math.Round(dif_Y_point, 1, MidpointRounding.AwayFromZero);
                     
