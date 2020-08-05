@@ -21,10 +21,11 @@
         <Button x:Name="FaceButton" Content="顔検出" HorizontalAlignment="Left" Margin="972,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="face_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
         <Image x:Name="MainImage" HorizontalAlignment="Left" Height="350" Margin="54,68,0,0" VerticalAlignment="Top" Width="622" />
 
-        <TextBlock x:Name="HueTextRed" HorizontalAlignment="Left" Margin="942,257,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="50" Width="358" FontFamily="Yu Gothic UI"/>
-        <TextBlock x:Name="HueTextBlue" HorizontalAlignment="Left" Margin="942,337,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="77" Width="358" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextRed" HorizontalAlignment="Left" Margin="942,257,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextBlue" HorizontalAlignment="Left" Margin="942,337,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
         <TextBlock x:Name="HueText" HorizontalAlignment="Left" Margin="942,199,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="358" FontFamily="Yu Gothic UI"/>
-
+        <TextBlock x:Name="HueTextYsig" HorizontalAlignment="Left" Margin="638,283,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
+        
         <Image x:Name="BaseImage" HorizontalAlignment="Left" Height="159" Margin="700,68,0,0" VerticalAlignment="Top" Width="274"/>
         <TextBlock x:Name="BaseText" HorizontalAlignment="Left" Margin="700,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="126" FontSize="36" FontFamily="Yu Gothic UI"><Run Background="#4C323489" Text="顔検出"/></TextBlock>
         <TextBlock x:Name="CurrentText" HorizontalAlignment="Left" Margin="54,7,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="219" FontSize="36" FontFamily="Yu Gothic UI"><Run Background="#4C323489" Text="処理後の画像"/></TextBlock>

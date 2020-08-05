@@ -23,9 +23,9 @@ namespace VeManagerApp
     {
         //Task Flag
         private Constants cont = new Constants();
-        private string resource_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Resources\\";
-        //public string captured_image_dir = "R:\\Temp\\";
-        private string captured_image_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Image\\";
+        private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
+        private string captured_image_dir = "R:\\Temp\\";
+        //private string captured_image_dir = "C:\\Users\\owner\\source\\repos\\VeManager\\Image\\";
         private string config_filename;
         private string config_texts;
         private String current_app_dir = GetCurrentAppDir();
@@ -152,6 +152,7 @@ namespace VeManagerApp
             var source = new BitmapImage();
             MainImage.Source = source;
             BaseImage.Source = source;
+            HueTextYsig.Inlines.Clear();
             HueTextRed.Inlines.Clear();
             HueTextBlue.Inlines.Clear();
             HueText.Inlines.Clear();
@@ -497,7 +498,9 @@ namespace VeManagerApp
 
                 }
 
-                BaseFrame.hue_detect_convert(0);
+                //Border Saturation Percent
+                BaseFrame.hue_detect_convert(10.0);
+                
 
                 try
                 {
@@ -512,7 +515,7 @@ namespace VeManagerApp
                 }
 
                 this.BaseImage.Source = BaseFrame.ReadWriteableBitmap(base_image_path);
-                Vec2d base_point = BaseFrame.ave_point_cal();
+                Vec3d base_point = BaseFrame.ave_point_cal();
 
 
                 System.Threading.Thread.Sleep(1);
@@ -534,7 +537,7 @@ namespace VeManagerApp
                     String hue_image_path = resource_dir + image + ".png";
                     current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
                     FrameData CurrentFrame;
-                    double dif_Y_point = 0, dif_X_point = 0;
+                    double dif_Y_point = 0, dif_X_point = 0, dif_Ysig_point = 0;
 
                     try
                     {
@@ -562,7 +565,9 @@ namespace VeManagerApp
 
                     }
 
-                    CurrentFrame.hue_detect_convert(0);
+                    //Border Saturation Percent
+                    CurrentFrame.hue_detect_convert(10.0);
+                    
 
                     try
                     {
@@ -578,14 +583,16 @@ namespace VeManagerApp
                     }
 
                     this.MainImage.Source = CurrentFrame.ReadWriteableBitmap(hue_image_path);
-                    Vec2d current_point = CurrentFrame.ave_point_cal();
+                    Vec3d current_point = CurrentFrame.ave_point_cal();
 
                     /* 0.7874 * 255 がY軸MAX, 0.9278 * 255 がX軸MAX => (200.787, 236.589)　本来はR/Bのベクトル方程式を解いてR/Bの二軸で表現する必要がある */
                     dif_X_point = (current_point.Item1 - base_point.Item1) * 100 / 236.589; // X軸%表記
                     dif_Y_point = (current_point.Item0 - base_point.Item0) * 100 / 200.787; // Y軸%表記
+                    dif_Ysig_point = (current_point.Item2 - base_point.Item2);
                     dif_X_point = Math.Round(dif_X_point, 1, MidpointRounding.AwayFromZero);
                     dif_Y_point = Math.Round(dif_Y_point, 1, MidpointRounding.AwayFromZero);
-                    
+                    dif_Ysig_point = Math.Round(dif_Ysig_point, 1, MidpointRounding.AwayFromZero);
+
 
                     DateTime e_dt = DateTime.Now;
                     String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
@@ -593,23 +600,40 @@ namespace VeManagerApp
                     DoEvents();
 
                     // 結果表示
+                    HueTextYsig.Inlines.Clear();
                     HueTextRed.Inlines.Clear();
-                    HueTextRed.Inlines.Add(new Run("赤色ずれ(Y軸) "));
-                    HueTextRed.Inlines.Add(dif_Y_point.ToString());
-                    HueTextRed.Inlines.Add("%");
-                    HueTextRed.FontSize = 30;
-                    HueTextRed.TextAlignment = TextAlignment.Center;
-                    HueTextRed.Foreground = Brushes.Red;
-
                     HueTextBlue.Inlines.Clear();
-                    HueTextBlue.Inlines.Add(new Run("青色ずれ(X軸) "));
-                    HueTextBlue.Inlines.Add(dif_X_point.ToString());
-                    HueTextBlue.Inlines.Add("%");
-                    HueTextBlue.FontSize = 30;
-                    HueTextBlue.TextAlignment = TextAlignment.Center;
-                    HueTextBlue.Foreground = Brushes.Navy;
 
-                    Thread.Sleep(500);
+                    HueTextYsig.Inlines.Add(new Run("Y信号差分"));
+                    HueTextYsig.Inlines.Add(dif_Ysig_point.ToString());
+                    HueTextYsig.Inlines.Add("%");
+                    HueTextYsig.FontSize = 30;
+                    HueTextYsig.TextAlignment = TextAlignment.Center;
+                    HueTextYsig.Foreground = Brushes.Gray;
+
+                    if ((dif_Ysig_point < -3) | (dif_Ysig_point > 3))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+
+                        HueTextRed.Inlines.Add(new Run("赤色ずれ(Y軸) "));
+                        HueTextRed.Inlines.Add(dif_Y_point.ToString());
+                        HueTextRed.Inlines.Add("%");
+                        HueTextRed.FontSize = 30;
+                        HueTextRed.TextAlignment = TextAlignment.Center;
+                        HueTextRed.Foreground = Brushes.Red;
+
+                        HueTextBlue.Inlines.Add(new Run("青色ずれ(X軸) "));
+                        HueTextBlue.Inlines.Add(dif_X_point.ToString());
+                        HueTextBlue.Inlines.Add("%");
+                        HueTextBlue.FontSize = 30;
+                        HueTextBlue.TextAlignment = TextAlignment.Center;
+                        HueTextBlue.Foreground = Brushes.Navy;
+
+                    }
+                    Thread.Sleep(100);
 
                 }
 

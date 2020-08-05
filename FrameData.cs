@@ -183,8 +183,9 @@ namespace VeManagerApp
             }
         }
 
-        public void hue_detect_convert(int saturation_border)
+        public void hue_detect_convert(double saturation_border_percent)
         {
+            double saturation_border = saturation_border_percent * 255 / 100;
             try
             {
                 unsafe
@@ -201,15 +202,16 @@ namespace VeManagerApp
                         byte r_px = px->Item2;
 
                         //Y, R-Y, B-Yを計算
+                        //Saturation Max = 255(G)とする
                         double linear_y_sig = 0.2126 * r_px + 0.7152 * g_px + 0.0722 * b_px;
                         double R_Y = r_px - linear_y_sig;
                         double B_Y = b_px - linear_y_sig;
                         double saturation = Math.Sqrt(R_Y * R_Y + B_Y * B_Y);
 
-                        bool color_space_detect_flag = (R_Y < 0) && (B_Y > 0);
+                        bool color_space_detect_flag = (R_Y < 0) && (B_Y < 0);
                         bool saturation_detect_flag = (saturation > saturation_border);
 
-                        if ((R_Y < 0) && (B_Y > 0))
+                        if (color_space_detect_flag && saturation_detect_flag)
                         {
                             ;
                         }
@@ -235,12 +237,14 @@ namespace VeManagerApp
 
         }
 
-        public Vec2d ave_point_cal()
+        public Vec3d ave_point_cal()
         {
-            Vec2d result_point;
+            Vec3d result_point;
             int sum_px = 0;
             double ave_Y_point = 0;
             double ave_X_point = 0;
+            double ave_Ysig = 0;
+            double conv_percent_to_sig = 0.39215686274;
 
             for (int y = 0; y < frame_mat.Rows; y++)
             {
@@ -266,6 +270,7 @@ namespace VeManagerApp
                         sum_px++;
                         ave_Y_point = ave_Y_point + R_Y;
                         ave_X_point = ave_X_point + B_Y;
+                        ave_Ysig = ave_Ysig + linear_y_sig;
 
                     }
                 }
@@ -273,6 +278,7 @@ namespace VeManagerApp
 
             result_point.Item0 = ave_Y_point / sum_px;
             result_point.Item1 = ave_X_point / sum_px;
+            result_point.Item2 = ave_Ysig * conv_percent_to_sig / sum_px;
 
             return result_point;
 
