@@ -244,7 +244,7 @@ namespace VeManagerApp
             double ave_Y_point = 0;
             double ave_X_point = 0;
             double ave_Ysig = 0;
-            double conv_percent_to_sig = 0.39215686274;
+
 
             for (int y = 0; y < frame_mat.Rows; y++)
             {
@@ -255,10 +255,10 @@ namespace VeManagerApp
                     byte g_px = point.Item1;
                     byte b_px = point.Item0;
 
-                    //Y, R-Y, B-Yを計算
+                    //Y, R-Y, B-Yを計算. Color matrixはARIB HDTV
                     double linear_y_sig = 0.2126 * r_px + 0.7152 * g_px + 0.0722 * b_px;
-                    double R_Y = (double)r_px - linear_y_sig;
-                    double B_Y = (double)b_px - linear_y_sig;
+                    double cr = 0.6350 * ((double)r_px - linear_y_sig); // R_Y * 0.6350
+                    double cb = 0.5389 * ((double)b_px - linear_y_sig); // B_Y * 0.5389
 
                     //黒部分はスルー. その他はインクリメントし、平均値を計算
                     if ((r_px == 0) && (g_px == 0) && (b_px == 0))
@@ -268,8 +268,8 @@ namespace VeManagerApp
                     }else
                     {
                         sum_px++;
-                        ave_Y_point = ave_Y_point + R_Y;
-                        ave_X_point = ave_X_point + B_Y;
+                        ave_Y_point = ave_Y_point + cr;
+                        ave_X_point = ave_X_point + cb;
                         ave_Ysig = ave_Ysig + linear_y_sig;
 
                     }
@@ -278,7 +278,7 @@ namespace VeManagerApp
 
             result_point.Item0 = ave_Y_point / sum_px;
             result_point.Item1 = ave_X_point / sum_px;
-            result_point.Item2 = ave_Ysig * conv_percent_to_sig / sum_px;
+            result_point.Item2 = ave_Ysig / sum_px;
 
             return result_point;
 

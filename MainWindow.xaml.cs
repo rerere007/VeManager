@@ -449,6 +449,10 @@ namespace VeManagerApp
         {
             HueButton.IsEnabled = false;
             double hue_comp_rate = 0.5;
+            double Ysig_range = 5.0; //Y信号ずれをどこまで許容するかのパラメータ
+            double saturation_border_percent = 15.0;
+            double conv_percent_to_sig = 0.39215686274;
+
             cont.change_task(Constants.HUE_IMAGE_TASK);
 
             try
@@ -499,7 +503,7 @@ namespace VeManagerApp
                 }
 
                 //Border Saturation Percent
-                BaseFrame.hue_detect_convert(10.0);
+                BaseFrame.hue_detect_convert(saturation_border_percent);
                 
 
                 try
@@ -538,6 +542,7 @@ namespace VeManagerApp
                     current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
                     FrameData CurrentFrame;
                     double dif_Y_point = 0, dif_X_point = 0, dif_Ysig_point = 0;
+                    double Ysig_dif_prediction = 0; //変更をした場合のYsigの変動値
 
                     try
                     {
@@ -566,7 +571,7 @@ namespace VeManagerApp
                     }
 
                     //Border Saturation Percent
-                    CurrentFrame.hue_detect_convert(10.0);
+                    CurrentFrame.hue_detect_convert(saturation_border_percent);
                     
 
                     try
@@ -585,13 +590,23 @@ namespace VeManagerApp
                     this.MainImage.Source = CurrentFrame.ReadWriteableBitmap(hue_image_path);
                     Vec3d current_point = CurrentFrame.ave_point_cal();
 
-                    /* 0.7874 * 255 がY軸MAX, 0.9278 * 255 がX軸MAX => (200.787, 236.589)　本来はR/Bのベクトル方程式を解いてR/Bの二軸で表現する必要がある */
-                    dif_X_point = (current_point.Item1 - base_point.Item1) * 100 / 236.589; // X軸%表記
-                    dif_Y_point = (current_point.Item0 - base_point.Item0) * 100 / 200.787; // Y軸%表記
-                    dif_Ysig_point = (current_point.Item2 - base_point.Item2);
+                    /* 0.5 * 255 がY軸MAX, 0.5 * 255 がX軸MAX. 本来はR/Bのベクトル方程式を解いてR/Bの二軸で表現する必要がある */
+                    dif_X_point = (current_point.Item1 - base_point.Item1); // X軸値 εX
+                    dif_Y_point = (current_point.Item0 - base_point.Item0); // Y軸値 εY
+                    dif_Ysig_point = (current_point.Item2 - base_point.Item2); // Ysig値 Ysigε
+                    Ysig_dif_prediction = Ysig_prediction(dif_Y_point, dif_X_point);
+
+
+                    dif_X_point = dif_X_point / 255 * 2 * 100; // X軸%表記
+                    dif_Y_point = dif_Y_point / 255 * 2 * 100; // Y軸%表記
+                    dif_Ysig_point = dif_Ysig_point * conv_percent_to_sig; //Ysig dif % 映像信号レベル
+                    Ysig_dif_prediction = Ysig_dif_prediction * conv_percent_to_sig; //Ysig dif % 映像信号レベル
+
+
                     dif_X_point = Math.Round(dif_X_point, 1, MidpointRounding.AwayFromZero);
                     dif_Y_point = Math.Round(dif_Y_point, 1, MidpointRounding.AwayFromZero);
                     dif_Ysig_point = Math.Round(dif_Ysig_point, 1, MidpointRounding.AwayFromZero);
+                    Ysig_dif_prediction = Math.Round(Ysig_dif_prediction, 1, MidpointRounding.AwayFromZero);
 
 
                     DateTime e_dt = DateTime.Now;
@@ -601,6 +616,7 @@ namespace VeManagerApp
 
                     // 結果表示
                     HueTextYsig.Inlines.Clear();
+                    HueTextYsigPrediction.Inlines.Clear();
                     HueTextRed.Inlines.Clear();
                     HueTextBlue.Inlines.Clear();
 
@@ -611,12 +627,18 @@ namespace VeManagerApp
                     HueTextYsig.TextAlignment = TextAlignment.Center;
                     HueTextYsig.Foreground = Brushes.Gray;
 
-                    if ((dif_Ysig_point < -3) | (dif_Ysig_point > 3))
+                    if ((dif_Ysig_point < -1 * Ysig_range) | (dif_Ysig_point > Ysig_range))
                     {
                         continue;
                     }
                     else
                     {
+                        HueTextYsigPrediction.Inlines.Add(new Run("修正後のYsig変化"));
+                        HueTextYsigPrediction.Inlines.Add(Ysig_dif_prediction.ToString());
+                        HueTextYsigPrediction.Inlines.Add("%");
+                        HueTextYsigPrediction.FontSize = 30;
+                        HueTextYsigPrediction.TextAlignment = TextAlignment.Center;
+                        HueTextYsigPrediction.Foreground = Brushes.Gray;
 
                         HueTextRed.Inlines.Add(new Run("赤色ずれ(Y軸) "));
                         HueTextRed.Inlines.Add(dif_Y_point.ToString());
@@ -653,6 +675,19 @@ namespace VeManagerApp
                 DoEvents();
 
             }
+
+        }
+
+        private double Ysig_prediction(double dif_Y_point, double dif_X_point)
+        {
+            double y_sig_prediction = 0;
+            double a = -0.114572, b =-0.385428, c =0.5, d =0.5, e =-0.454153, f =-0.045847, g =0.2126, h =0.7152, i =0.0722;
+            double div_num = a * f - c * d;
+            double R_dif = (f * dif_X_point - c * dif_Y_point) / div_num;
+            double B_dif = (a * dif_Y_point - d * dif_X_point) / div_num;
+
+            y_sig_prediction = g * R_dif + i * B_dif;
+            return y_sig_prediction;
 
         }
 

@@ -52,6 +52,7 @@
         <Label Content="＞明るさ＞" HorizontalAlignment="Left" Margin="475,559,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
 
         <Button x:Name="HueButton" Content="HueButton" HorizontalAlignment="Left" Margin="1140,487,0,0" VerticalAlignment="Top" Width="59" Height="27" Click="hue_image" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextYsigPrediction" HorizontalAlignment="Left" Margin="638,340,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
 
     </Grid>
 </Window>
