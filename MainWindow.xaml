@@ -10,49 +10,55 @@
         <ResourceDictionary Source="/PresentationFramework.Aero2;component/themes/aero2.normalcolor.xaml" />
     </Window.Resources>
     <Grid Margin="0,2,3.667,-2.667">
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="#FF000064" Offset="0"/>
+                <GradientStop Color="White" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Border BorderBrush="Black" BorderThickness="2,2,2,2" HorizontalAlignment="Left" Height="106" Margin="689,488,0,0" VerticalAlignment="Top" Width="542"/>
-        <Button x:Name="ShowButton" Content="加工なし映像" HorizontalAlignment="Left" Margin="689,422,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="show_image" FontFamily="Yu Gothic UI" BorderThickness="2" BorderBrush="Black"/>
+        <Border BorderBrush="Black" BorderThickness="2,2,2,2" HorizontalAlignment="Left" Height="106" Margin="689,514,0,0" VerticalAlignment="Top" Width="542"/>
+        <Button x:Name="ShowButton" Content="入力映像" HorizontalAlignment="Left" Margin="689,460,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="show_image" FontFamily="Yu Gothic UI" BorderThickness="2" BorderBrush="Black"/>
 
-        <Button x:Name="DeleteButton" Content="停止" HorizontalAlignment="Left" Margin="1117,420,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="delete_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
-        <Button x:Name="CineButton" Content="輝度ペイント" HorizontalAlignment="Left" Margin="829,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="cinelite_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
-        <Button x:Name="FaceButton" Content="顔検出" HorizontalAlignment="Left" Margin="972,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="face_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
+        <Button x:Name="DeleteButton" Content="停止" HorizontalAlignment="Left" Margin="1117,460,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="delete_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/>
+        <!-- <Button x:Name="CineButton" Content="輝度ペイント" HorizontalAlignment="Left" Margin="829,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="cinelite_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/> -->
+        <!-- <Button x:Name="FaceButton" Content="顔検出" HorizontalAlignment="Left" Margin="972,422,0,0" VerticalAlignment="Top" Width="115" Height="46" Click="face_image" FontFamily="Yu Gothic UI" BorderThickness="2" Background="#FFDDDDDD" BorderBrush="Black"/> -->
         <Image x:Name="MainImage" HorizontalAlignment="Left" Height="350" Margin="54,68,0,0" VerticalAlignment="Top" Width="622" />
 
-        <TextBlock x:Name="HueTextRed" HorizontalAlignment="Left" Margin="942,257,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
-        <TextBlock x:Name="HueTextBlue" HorizontalAlignment="Left" Margin="942,337,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
-        <TextBlock x:Name="HueText" HorizontalAlignment="Left" Margin="942,199,-1.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="358" FontFamily="Yu Gothic UI"/>
-        <TextBlock x:Name="HueTextYsig" HorizontalAlignment="Left" Margin="638,283,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
-        
+        <TextBlock x:Name="HueTextRed" HorizontalAlignment="Left" Margin="942,279,-3,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextBlue" HorizontalAlignment="Left" Margin="942,359,-3,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueText" HorizontalAlignment="Left" Margin="942,221,-3,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="358" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextYsig" HorizontalAlignment="Left" Margin="689,283,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="315" FontFamily="Yu Gothic UI"/>
+
         <Image x:Name="BaseImage" HorizontalAlignment="Left" Height="159" Margin="700,68,0,0" VerticalAlignment="Top" Width="274"/>
-        <TextBlock x:Name="BaseText" HorizontalAlignment="Left" Margin="700,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="126" FontSize="36" FontFamily="Yu Gothic UI"><Run Background="#4C323489" Text="顔検出"/></TextBlock>
-        <TextBlock x:Name="CurrentText" HorizontalAlignment="Left" Margin="54,7,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="219" FontSize="36" FontFamily="Yu Gothic UI"><Run Background="#4C323489" Text="処理後の画像"/></TextBlock>
+        <TextBlock x:Name="BaseText" HorizontalAlignment="Left" Margin="700,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="165" FontSize="36" FontFamily="Yu Gothic UI" Background="White"><Run Background="#FFFFFFFD" Text="ベース映像"/></TextBlock>
+        <TextBlock x:Name="CurrentText" HorizontalAlignment="Left" Margin="54,7,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="186" FontSize="36" FontFamily="Yu Gothic UI" Background="White"><Run Background="White" Text="現在の映像"/></TextBlock>
 
-        <TextBox x:Name="textLeftGreen" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="383,563,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FF2DC364" FontFamily="Yu Gothic UI" FontSize="22"/>
-        <TextBox x:Name="textRightGreen" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="561,563,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FF22C55D" FontFamily="Yu Gothic UI" FontSize="22"/>
-        <TextBox x:Name="textLeftRed" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="383,468,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FFEC4019" FontFamily="Yu Gothic UI" FontSize="22"/>
-        <TextBox x:Name="textRightRed" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="561,468,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FFE8401A" FontFamily="Yu Gothic UI" FontSize="22"/>
-        <TextBox x:Name="textLeftBlue" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="383,513,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FF3DE6BF" FontFamily="Yu Gothic UI" FontSize="22"/>
-        <TextBox x:Name="textRightBlue" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="561,513,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FF65ECC1" FontFamily="Yu Gothic UI" FontSize="22"/>
-        <Button Content="設定を保存" HorizontalAlignment="Left" Margin="757,547,0,0" VerticalAlignment="Top" Width="90" Click="Write_Button" FontFamily="Yu Gothic UI" Height="30" BorderThickness="3" />
-        <Button Content="設定を読み出し" HorizontalAlignment="Left" Margin="955,548,0,0" VerticalAlignment="Top" Width="90" Click="Read_Button" FontFamily="Yu Gothic UI" Height="30" BorderThickness="3" />
+        <TextBox x:Name="textLeftGreen" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="383,585,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FF2DC364" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textRightGreen" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="561,585,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FF22C55D" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textLeftRed" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="383,490,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FFEC4019" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textRightRed" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="561,490,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FFE8401A" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textLeftBlue" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="383,535,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FF3DE6BF" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="textRightBlue" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="561,535,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="84" Background="#FF65ECC1" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <Button Content="設定を保存" HorizontalAlignment="Left" Margin="757,581,0,0" VerticalAlignment="Top" Width="90" Click="Write_Button" FontFamily="Yu Gothic UI" Height="30" BorderThickness="3" />
+        <Button Content="設定を読み出し" HorizontalAlignment="Left" Margin="955,582,0,0" VerticalAlignment="Top" Width="90" Click="Read_Button" FontFamily="Yu Gothic UI" Height="30" BorderThickness="3" />
 
-        <Label Content="設定保存ファイル名" HorizontalAlignment="Left" Margin="757,487,0,0" VerticalAlignment="Top" Width="178" FontFamily="Yu Gothic UI"/>
-        <TextBox HorizontalAlignment="Left" Height="24" Margin="755,512,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180" x:Name="WriteFileName" FontFamily="Yu Gothic UI"/>
-        <Label Content="読み出しファイル名" HorizontalAlignment="Left" Margin="955,487,0,0" VerticalAlignment="Top" Width="180" FontFamily="Yu Gothic UI"/>
-        <TextBox HorizontalAlignment="Left" Height="24" Margin="955,512,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180" x:Name="ReadFileName" FontFamily="Yu Gothic UI" />
+        <Label Content="設定保存ファイル名" HorizontalAlignment="Left" Margin="759,523,0,0" VerticalAlignment="Top" Width="178" FontFamily="Yu Gothic UI"/>
+        <TextBox HorizontalAlignment="Left" Height="24" Margin="757,548,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180" x:Name="WriteFileName" FontFamily="Yu Gothic UI"/>
+        <Label Content="読み出しファイル名" HorizontalAlignment="Left" Margin="955,523,0,0" VerticalAlignment="Top" Width="180" FontFamily="Yu Gothic UI"/>
+        <TextBox HorizontalAlignment="Left" Height="24" Margin="955,548,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180" x:Name="ReadFileName" FontFamily="Yu Gothic UI" />
         <Image x:Name="FaceImage" HorizontalAlignment="Left" Height="159" Margin="996,68,0,0" VerticalAlignment="Top" Width="271"/>
-        <TextBox HorizontalAlignment="Left" Height="37" Margin="72,513,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="280" x:Name="BlueMemo" FontFamily="Yu Gothic UI" Background="#4C09A2BE" BorderThickness="3" BorderBrush="#FF06C5E5" FontSize="22" Text="青用のメモ欄"/>
-        <TextBox HorizontalAlignment="Left" Height="37" Margin="72,466,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="280" x:Name="RedMemo" FontFamily="Yu Gothic UI" Background="#66FF2000" BorderThickness="3" BorderBrush="#FFD36161" FontSize="22" Text="赤用のメモ欄" />
-        <TextBox HorizontalAlignment="Left" Height="37" Margin="72,563,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="280" x:Name="GreenMemo" FontFamily="Yu Gothic UI" Background="#4C1AD85E" BorderThickness="3" BorderBrush="#FF49BF4F" FontSize="22" Text="緑用のメモ欄" />
-        <Label Content="＞明るさ＞" HorizontalAlignment="Left" Margin="475,472,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
-        <Label Content="＞明るさ＞" HorizontalAlignment="Left" Margin="475,512,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
-        <Label Content="＞明るさ＞" HorizontalAlignment="Left" Margin="475,559,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
+        <TextBox HorizontalAlignment="Left" Height="37" Margin="72,535,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="280" x:Name="BlueMemo" FontFamily="Yu Gothic UI" Background="#4C09A2BE" BorderThickness="3" BorderBrush="#FF06C5E5" FontSize="22" Text="青色範囲(0-360)"/>
+        <TextBox HorizontalAlignment="Left" Height="37" Margin="72,488,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="280" x:Name="RedMemo" FontFamily="Yu Gothic UI" Background="#66FF2000" BorderThickness="3" BorderBrush="#FFD36161" FontSize="22" Text="赤色範囲(0-360)" />
+        <TextBox HorizontalAlignment="Left" Height="37" Margin="72,585,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="280" x:Name="GreenMemo" FontFamily="Yu Gothic UI" Background="#4C1AD85E" BorderThickness="3" BorderBrush="#FF49BF4F" FontSize="22" Text="緑色範囲(0-360)" />
+        <Label Content="＞赤色＞" HorizontalAlignment="Left" Margin="475,494,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
+        <Label Content="＞青色＞" HorizontalAlignment="Left" Margin="475,534,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
+        <Label Content="＞緑色＞" HorizontalAlignment="Left" Margin="475,581,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
 
-        <Button x:Name="HueButton" Content="HueButton" HorizontalAlignment="Left" Margin="1140,487,0,0" VerticalAlignment="Top" Width="59" Height="27" Click="hue_image" FontFamily="Yu Gothic UI"/>
-        <TextBlock x:Name="HueTextYsigPrediction" HorizontalAlignment="Left" Margin="638,340,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
+        <Button x:Name="HueButton" Content="色差分析" HorizontalAlignment="Left" Margin="825,460,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="hue_image" FontFamily="Yu Gothic UI" BorderThickness="3" />
+        <TextBlock x:Name="HueTextYsigPrediction" HorizontalAlignment="Left" Margin="689,340,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="315" FontFamily="Yu Gothic UI"/>
 
     </Grid>
 </Window>

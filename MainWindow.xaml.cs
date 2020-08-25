@@ -159,6 +159,7 @@ namespace VeManagerApp
 
         }
 
+        /*
         private void cinelite_image(object sender, RoutedEventArgs e)
         {
             CineButton.IsEnabled = false;
@@ -230,7 +231,6 @@ namespace VeManagerApp
 
                     try
                     {
-                        /* image resize */
                         fd.ResizeFrame(cinelite_comp_rate);
 
                     }
@@ -278,7 +278,9 @@ namespace VeManagerApp
             }
 
         }
+        */
 
+        /*
         private void face_image(object sender, RoutedEventArgs e)
         {
             FaceButton.IsEnabled = false;
@@ -339,7 +341,6 @@ namespace VeManagerApp
 
                     try
                     {
-                        /* resize image */
                         OriginFrame.ResizeFrame(face_comp_rate);
 
                     }
@@ -441,6 +442,7 @@ namespace VeManagerApp
 
             }
         }
+        */
 
         
         /* HUE Detect で Saturationと第何象限かを比較(象限のほうは今後修正する). Saturationは正規化し, %になおす必要がある. */
@@ -625,7 +627,7 @@ namespace VeManagerApp
                     HueTextYsig.Inlines.Add("%");
                     HueTextYsig.FontSize = 30;
                     HueTextYsig.TextAlignment = TextAlignment.Center;
-                    HueTextYsig.Foreground = Brushes.Gray;
+                    HueTextYsig.Foreground = Brushes.White;
 
                     if ((dif_Ysig_point < -1 * Ysig_range) | (dif_Ysig_point > Ysig_range))
                     {
@@ -633,12 +635,14 @@ namespace VeManagerApp
                     }
                     else
                     {
+                        /*
                         HueTextYsigPrediction.Inlines.Add(new Run("修正後のYsig変化"));
                         HueTextYsigPrediction.Inlines.Add(Ysig_dif_prediction.ToString());
                         HueTextYsigPrediction.Inlines.Add("%");
                         HueTextYsigPrediction.FontSize = 30;
                         HueTextYsigPrediction.TextAlignment = TextAlignment.Center;
-                        HueTextYsigPrediction.Foreground = Brushes.Gray;
+                        HueTextYsigPrediction.Foreground = Brushes.White;
+                        */
 
                         HueTextRed.Inlines.Add(new Run("赤色ずれ(Y軸) "));
                         HueTextRed.Inlines.Add(dif_Y_point.ToString());
