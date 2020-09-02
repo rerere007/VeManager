@@ -26,7 +26,7 @@ namespace VeManagerApp
                 //引数には読み込むファイル名とエンコードが必要
                 StreamReader streamReader = new StreamReader(filename, Encoding.UTF8);
 
-                var mainWindow = (MainWindow)App.Current.MainWindow;
+                var mainWindow = (VeManager)App.Current.MainWindow;
 
                 //読み込む前に初期化しておく
                 String FileContent = "";

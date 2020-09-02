@@ -104,9 +104,12 @@ namespace VeManagerApp
         public WriteableBitmap ReadWriteableBitmap(string target_image_path)
         {
             //lock less bitmap
-            MemoryStream data = new MemoryStream(File.ReadAllBytes(target_image_path));
-            WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
-            data.Close();
+            WriteableBitmap wbmp;
+            using (MemoryStream data = new MemoryStream(File.ReadAllBytes(target_image_path)))
+            {
+                wbmp = new WriteableBitmap(BitmapFrame.Create(data));
+            }
+            //data.Close();
             File.Delete(target_image_path);
             return wbmp;
 
@@ -183,9 +186,9 @@ namespace VeManagerApp
             }
         }
 
-        public void hue_detect_convert(double saturation_border_percent)
+        public void hue_detect_convert(double saturation_border_percent, double LeftRed, double RightRed)
         {
-            double saturation_border = saturation_border_percent * 255 / 100;
+            double saturation_border = saturation_border_percent * 0.59567675798 * 255 / 100; //G & Magentaの時
             try
             {
                 unsafe
@@ -201,14 +204,24 @@ namespace VeManagerApp
                         byte g_px = px->Item1;
                         byte r_px = px->Item2;
 
-                        //Y, R-Y, B-Yを計算
-                        //Saturation Max = 255(G)とする
+                        //YCrCbを計算
+                        //Color matrixはARIB HDTV
                         double linear_y_sig = 0.2126 * r_px + 0.7152 * g_px + 0.0722 * b_px;
-                        double R_Y = r_px - linear_y_sig;
-                        double B_Y = b_px - linear_y_sig;
-                        double saturation = Math.Sqrt(R_Y * R_Y + B_Y * B_Y);
+                        double cr = 0.6350 * (r_px - linear_y_sig); //0.6350 * R_Y
+                        double cb = 0.5389 * (b_px - linear_y_sig); //0.5389 * B_Y
 
-                        bool color_space_detect_flag = (R_Y < 0) && (B_Y < 0);
+                        double saturation = Math.Sqrt(cr * cr + cb * cb); // rを計算
+                        double radian = Math.Atan2(cr, cb); //radianを計算
+                        double angle = radian * (180 / Math.PI);
+                        if (angle >= 0)
+                        {
+                            ;
+                        } else
+                        {
+                            angle = angle + 360;
+                        }
+
+                        bool color_space_detect_flag = (LeftRed <= angle) && (angle <= RightRed);
                         bool saturation_detect_flag = (saturation > saturation_border);
 
                         if (color_space_detect_flag && saturation_detect_flag)
@@ -220,7 +233,7 @@ namespace VeManagerApp
                             px->Item0 = 0;
                             px->Item1 = 0;
                             px->Item2 = 0;
-
+                        
                         }
 
                     };
@@ -236,6 +249,7 @@ namespace VeManagerApp
             }
 
         }
+
 
         public Vec3d ave_point_cal()
         {

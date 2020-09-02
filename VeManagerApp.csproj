@@ -102,7 +102,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="MainWindow.xaml">
+    <Page Include="VeManager.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -114,8 +114,8 @@
     <Compile Include="FrameData.cs" />
     <Compile Include="TextWrite.cs" />
     <Compile Include="ReadText.cs" />
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
+    <Compile Include="VeManager.xaml.cs">
+      <DependentUpon>VeManager.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
