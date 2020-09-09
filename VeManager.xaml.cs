@@ -451,8 +451,7 @@ namespace VeManagerApp
         */
 
         
-        /* HUE Detect で Saturationと第何象限かを比較(象限のほうは今後修正する). Saturationは正規化し, %になおす必要がある. */
-
+        /* HUE Detectで彩度と色相範囲を用いて抽出し、Gamma補正をかけつつ色を比較 */
         private void hue_image(object sender, RoutedEventArgs e)
         {
             HueButton.IsEnabled = false;
@@ -554,7 +553,7 @@ namespace VeManagerApp
                 }
 
                 this.BaseImage.Source = BaseFrame.ReadWriteableBitmap(base_image_path);
-                Vec3d base_point = BaseFrame.ave_point_cal();
+                Vec3d base_point = BaseFrame.cal_ave_point();
 
                 //以下, HUEの比較計算処理
                 HueText.Inlines.Clear();
@@ -572,6 +571,7 @@ namespace VeManagerApp
                     current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
                     FrameData CurrentFrame;
                     double dif_Y_point = 0, dif_X_point = 0, dif_Ysig_point = 0;
+                    double dif_R_axis = 0, dif_B_axis = 0;
 
                     try
                     {
@@ -637,19 +637,23 @@ namespace VeManagerApp
                     }
 
                     this.MainImage.Source = CurrentFrame.ReadWriteableBitmap(hue_image_path);
-                    Vec3d current_point = CurrentFrame.ave_point_cal();
+                    Vec3d current_point = CurrentFrame.cal_ave_point();//gamma補正前
+                    double gamma_lambda = Math.Log(base_point.Item2 / 255) / Math.Log(current_point.Item2 / 255);
+                    CurrentFrame.gamma_correction(gamma_lambda);
+                    Vec3d gamma_current_point = CurrentFrame.cal_ave_point();//gammga補正により輝度平均をそろえる
 
-                    /* 0.5 * 255 がY軸MAX, 0.5 * 255 がX軸MAX. 本来はR/Bのベクトル方程式を解いてR/Bの二軸で表現する必要がある */
-                    dif_X_point = (current_point.Item1 - base_point.Item1); // X軸値 εX
-                    dif_Y_point = (current_point.Item0 - base_point.Item0); // Y軸値 εY
-                    dif_Ysig_point = (current_point.Item2 - base_point.Item2); // Ysig値 Ysigε
 
-                    dif_X_point = dif_X_point / 255 * 2 * 100; // X軸%表記
-                    dif_Y_point = dif_Y_point / 255 * 2 * 100; // Y軸%表記
+                    /* R/Bのベクトル方程式を解いてR/Bの二軸で表現する */
+                    dif_X_point = (gamma_current_point.Item1 - base_point.Item1); // X軸値 εX
+                    dif_Y_point = (gamma_current_point.Item0 - base_point.Item0); // Y軸値 εY
+                    dif_Ysig_point = (gamma_current_point.Item2 - base_point.Item2); // Ysig値 εY
+
+                    dif_R_axis = (10.9170305677 * dif_Y_point - dif_X_point) / 1421.13725738 * 100; //Red軸 %表記
+                    dif_B_axis = (4.36406800964 * dif_X_point + dif_Y_point) / 568.097671229 * 100; //Blue軸 %表記
                     dif_Ysig_point = dif_Ysig_point * conv_percent_to_sig; //Ysig dif % 映像信号レベル
 
-                    dif_X_point = Math.Round(dif_X_point, 1, MidpointRounding.AwayFromZero);
-                    dif_Y_point = Math.Round(dif_Y_point, 1, MidpointRounding.AwayFromZero);
+                    dif_R_axis = Math.Round(dif_R_axis, 1, MidpointRounding.AwayFromZero);
+                    dif_B_axis = Math.Round(dif_B_axis, 1, MidpointRounding.AwayFromZero);
                     dif_Ysig_point = Math.Round(dif_Ysig_point, 1, MidpointRounding.AwayFromZero);
 
                     DateTime e_dt = DateTime.Now;
@@ -675,15 +679,15 @@ namespace VeManagerApp
                     else
                     {
 
-                        HueTextRed.Inlines.Add(new Run("赤色ずれ(Y軸) "));
-                        HueTextRed.Inlines.Add(dif_Y_point.ToString());
+                        HueTextRed.Inlines.Add(new Run("赤色ずれ "));
+                        HueTextRed.Inlines.Add(dif_R_axis.ToString());
                         HueTextRed.Inlines.Add("%");
                         HueTextRed.FontSize = 30;
                         HueTextRed.TextAlignment = TextAlignment.Center;
                         HueTextRed.Foreground = Brushes.Red;
 
-                        HueTextBlue.Inlines.Add(new Run("青色ずれ(X軸) "));
-                        HueTextBlue.Inlines.Add(dif_X_point.ToString());
+                        HueTextBlue.Inlines.Add(new Run("青色ずれ "));
+                        HueTextBlue.Inlines.Add(dif_B_axis.ToString());
                         HueTextBlue.Inlines.Add("%");
                         HueTextBlue.FontSize = 30;
                         HueTextBlue.TextAlignment = TextAlignment.Center;
@@ -712,7 +716,6 @@ namespace VeManagerApp
 
             }
         }
-
 
         // ↓ ここから独自開発のDoEvents()
         private void DoEvents()

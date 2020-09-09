@@ -17,6 +17,7 @@ namespace VeManagerApp
     class FrameData
     {
         private Mat frame_mat;
+
         public FrameData(string read_image_path)
         {
             try
@@ -250,15 +251,13 @@ namespace VeManagerApp
 
         }
 
-
-        public Vec3d ave_point_cal()
+        public Vec3d cal_ave_point()
         {
             Vec3d result_point;
             int sum_px = 0;
             double ave_Y_point = 0;
             double ave_X_point = 0;
             double ave_Ysig = 0;
-
 
             for (int y = 0; y < frame_mat.Rows; y++)
             {
@@ -270,9 +269,9 @@ namespace VeManagerApp
                     byte b_px = point.Item0;
 
                     //Y, R-Y, B-Yを計算. Color matrixはARIB HDTV
-                    double linear_y_sig = 0.2126 * r_px + 0.7152 * g_px + 0.0722 * b_px;
-                    double cr = 0.6350 * ((double)r_px - linear_y_sig); // R_Y * 0.6350
-                    double cb = 0.5389 * ((double)b_px - linear_y_sig); // B_Y * 0.5389
+                    double y_sig = 0.2126 * r_px + 0.7152 * g_px + 0.0722 * b_px;
+                    double cr = 0.6350 * ((double)r_px - y_sig); // R_Y * 0.6350
+                    double cb = 0.5389 * ((double)b_px - y_sig); // B_Y * 0.5389
 
                     //黒部分はスルー. その他はインクリメントし、平均値を計算
                     if ((r_px == 0) && (g_px == 0) && (b_px == 0))
@@ -284,18 +283,56 @@ namespace VeManagerApp
                         sum_px++;
                         ave_Y_point = ave_Y_point + cr;
                         ave_X_point = ave_X_point + cb;
-                        ave_Ysig = ave_Ysig + linear_y_sig;
+                        ave_Ysig = ave_Ysig + y_sig;
 
                     }
                 }
             }
-
-            result_point.Item0 = ave_Y_point / sum_px;
-            result_point.Item1 = ave_X_point / sum_px;
-            result_point.Item2 = ave_Ysig / sum_px;
+           
+            //sum px = 0の際のError処理が未
+            ave_Ysig = ave_Ysig / sum_px;
+            ave_Y_point = ave_Y_point / sum_px;
+            ave_X_point = ave_X_point / sum_px;
+            
+            result_point.Item0 = ave_Y_point;
+            result_point.Item1 = ave_X_point;
+            result_point.Item2 = ave_Ysig;
 
             return result_point;
 
+        }
+
+        public void gamma_correction(double lambda)
+        {
+            try
+            {
+                unsafe
+                {
+
+                    MatForeachFunctionVec3b del_gamma_correction_func;
+                    del_gamma_correction_func = delegate (Vec3b* px, int* position)
+                    {
+                        // 各ピクセルに対してgamma correction
+                        byte b_px = px->Item0;
+                        byte g_px = px->Item1;
+                        byte r_px = px->Item2;
+
+                        px->Item0 = Convert.ToByte(255 * Math.Pow((double)b_px / 255, lambda));
+                        px->Item1 = Convert.ToByte(255 * Math.Pow((double)g_px / 255, lambda));
+                        px->Item2 = Convert.ToByte(255 * Math.Pow((double)r_px / 255, lambda));
+
+
+                    };
+                    this.frame_mat.ForEachAsVec3b(del_gamma_correction_func);
+
+                };
+            }
+            catch (Exception gamma_correction_error)
+            {
+                Console.WriteLine(gamma_correction_error);
+                throw;
+
+            }
         }
 
         public static implicit operator Mat(FrameData v)
