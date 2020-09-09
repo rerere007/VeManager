@@ -566,7 +566,6 @@ namespace VeManagerApp
 
                     DateTime s_dt = DateTime.Now;
                     String image = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
-                    String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
                     String hue_image_path = resource_dir + image + ".png";
                     current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
                     FrameData CurrentFrame;
@@ -620,28 +619,13 @@ namespace VeManagerApp
 
                     }
 
-                    //Border Saturation Percent
-                    CurrentFrame.hue_detect_convert(RedSatur, LeftRed, RightRed);          
+                    // hue_detect_convert(saturation percent, hue start angle, hue end angle)
+                    CurrentFrame.hue_detect_convert(RedSatur, LeftRed, RightRed);
 
-                    try
-                    {
-                        CurrentFrame.WriteFrame(hue_image_path);
-
-                    }
-                    catch (Exception opencv_write_error)
-                    {
-                        Console.WriteLine(opencv_write_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    this.MainImage.Source = CurrentFrame.ReadWriteableBitmap(hue_image_path);
                     Vec3d current_point = CurrentFrame.cal_ave_point();//gamma補正前
                     double gamma_lambda = Math.Log(base_point.Item2 / 255) / Math.Log(current_point.Item2 / 255);
                     CurrentFrame.gamma_correction(gamma_lambda);
                     Vec3d gamma_current_point = CurrentFrame.cal_ave_point();//gammga補正により輝度平均をそろえる
-
 
                     /* R/Bのベクトル方程式を解いてR/Bの二軸で表現する */
                     dif_X_point = (gamma_current_point.Item1 - base_point.Item1); // X軸値 εX
@@ -656,11 +640,23 @@ namespace VeManagerApp
                     dif_B_axis = Math.Round(dif_B_axis, 1, MidpointRounding.AwayFromZero);
                     dif_Ysig_point = Math.Round(dif_Ysig_point, 1, MidpointRounding.AwayFromZero);
 
-                    DateTime e_dt = DateTime.Now;
-                    String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
                     DoEvents();
 
-                    // 結果表示
+                    // ここからは表示
+                    try
+                    {
+                        CurrentFrame.WriteFrame(hue_image_path);
+
+                    }
+                    catch (Exception opencv_write_error)
+                    {
+                        Console.WriteLine(opencv_write_error);
+                        DoEvents();
+                        continue;
+
+                    }
+                    this.MainImage.Source = CurrentFrame.ReadWriteableBitmap(hue_image_path);
+
                     HueTextYsig.Inlines.Clear();
                     HueTextRed.Inlines.Clear();
                     HueTextBlue.Inlines.Clear();
@@ -707,6 +703,8 @@ namespace VeManagerApp
             }
             finally
             {
+                var source = new BitmapImage();
+                this.MainImage.Source = source;
                 HueButton.IsEnabled = true;
                 HueTextYsig.Inlines.Clear();
                 HueTextRed.Inlines.Clear();

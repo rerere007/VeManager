@@ -110,7 +110,6 @@ namespace VeManagerApp
             {
                 wbmp = new WriteableBitmap(BitmapFrame.Create(data));
             }
-            //data.Close();
             File.Delete(target_image_path);
             return wbmp;
 
@@ -199,14 +198,13 @@ namespace VeManagerApp
                     del_hue_detect_func = delegate (Vec3b* px, int* position)
                     {
 
-                        // Gamma処理を行わずに計算した場合(DeckLinkがPNGの際にやってくれている?) .. BGRに注意
-
+                        // Gamma RGB
                         byte b_px = px->Item0;
                         byte g_px = px->Item1;
                         byte r_px = px->Item2;
 
-                        //YCrCbを計算
-                        //Color matrixはARIB HDTV
+                        // YCrCb
+                        // Color matrix: ARIB HDTV
                         double linear_y_sig = 0.2126 * r_px + 0.7152 * g_px + 0.0722 * b_px;
                         double cr = 0.6350 * (r_px - linear_y_sig); //0.6350 * R_Y
                         double cb = 0.5389 * (b_px - linear_y_sig); //0.5389 * B_Y
@@ -228,6 +226,7 @@ namespace VeManagerApp
                         if (color_space_detect_flag && saturation_detect_flag)
                         {
                             ;
+
                         }
                         else
                         {
@@ -321,7 +320,6 @@ namespace VeManagerApp
                         px->Item1 = Convert.ToByte(255 * Math.Pow((double)g_px / 255, lambda));
                         px->Item2 = Convert.ToByte(255 * Math.Pow((double)r_px / 255, lambda));
 
-
                     };
                     this.frame_mat.ForEachAsVec3b(del_gamma_correction_func);
 
@@ -338,6 +336,7 @@ namespace VeManagerApp
         public static implicit operator Mat(FrameData v)
         {
             throw new NotImplementedException();
+
         }
     }
 }
