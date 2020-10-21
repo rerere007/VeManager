@@ -24,13 +24,13 @@ namespace VeManagerApp
         //Task Flag
         private Constants cont = new Constants();
         
-        //FrameDataの取り込み先(上はノートPC, 下は開発PC)
-        //private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
-        private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
+        //FrameDataの取り込み先(上は開発, 下はPC)
+        private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
+        //private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
 
-        //CaptureStillsのOutput(上はノートPC, 下は開発PC)
-        //private string captured_image_dir = "R:\\Temp\\";
-        private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
+        //CaptureStillsのOutput(上は開発PC, 下はPC)
+        private string captured_image_dir = "R:\\Temp\\";
+        //private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
         
         private string config_filename;
         private string config_texts;
