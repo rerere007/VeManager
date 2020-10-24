@@ -287,15 +287,23 @@ namespace VeManagerApp
                     }
                 }
             }
-           
-            //sum px = 0の際のError処理が未
-            ave_Ysig = ave_Ysig / sum_px;
-            ave_Y_point = ave_Y_point / sum_px;
-            ave_X_point = ave_X_point / sum_px;
-            
-            result_point.Item0 = ave_Y_point;
-            result_point.Item1 = ave_X_point;
-            result_point.Item2 = ave_Ysig;
+
+            if (sum_px == 0)
+            {
+                throw new DivideByZeroException(); // 入力に該当映像がなかった場合のError 処理
+
+            }
+            else
+            {
+
+                ave_Ysig = ave_Ysig / sum_px;
+                ave_Y_point = ave_Y_point / sum_px;
+                ave_X_point = ave_X_point / sum_px;
+
+                result_point.Item0 = ave_Y_point;
+                result_point.Item1 = ave_X_point;
+                result_point.Item2 = ave_Ysig;
+            }
 
             return result_point;
 
