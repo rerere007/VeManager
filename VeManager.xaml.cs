@@ -25,39 +25,22 @@ namespace VeManagerApp
         private Constants cont = new Constants();
         
         //FrameDataの取り込み先(上は開発, 下はPC)
-        private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
-        //private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
+        //private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
+        private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
 
         //CaptureStillsのOutput(上は開発PC, 下はPC)
-        private string captured_image_dir = "R:\\Temp\\";
-        //private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
+        //private string captured_image_dir = "R:\\Temp\\";
+        private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
         
         private string config_filename;
         private string config_texts;
         private String current_app_dir = GetCurrentAppDir();
-        private CascadeClassifier cascade = new CascadeClassifier();
 
         public VeManager()
         {
             string config_db_path = current_app_dir + "\\" + "ConfigDB";
-            string cascade_dir = current_app_dir + "\\" + "cascade";
 
             SafeCreateDirectory(config_db_path);
-            SafeCreateDirectory(cascade_dir);
-
-            try
-            {
-                String cascade_path = cascade_dir + "\\" + "haarcascade_frontalface_alt2.xml";
-                cascade.Load(cascade_path);
-
-            }
-            catch (Exception cascade_error)
-            {
-                Console.WriteLine(cascade_error);
-                Console.WriteLine("Cascade分類機が開けません");
-                System.Threading.Thread.Sleep(10000);
-
-            }
             InitializeComponent();
 
         }
@@ -165,292 +148,6 @@ namespace VeManagerApp
 
         }
 
-        /*
-        private void cinelite_image(object sender, RoutedEventArgs e)
-        {
-            CineButton.IsEnabled = false;
-            double cinelite_comp_rate = 0.5;
-            double conv_percent_to_sig = 0.39215686274;
-
-            double LeftBlue = 0;
-            double RightBlue = 0;
-            double LeftRed = 0;
-            double RightRed = 0;
-            double LeftGreen = 0;
-            double RightGreen = 0;
-
-            cont.change_task(Constants.CINE_IMAGE_TASK);
-
-
-            try
-            {
-                while (cont.getCurrentTask() == Constants.CINE_IMAGE_TASK)
-                {
-
-                    try
-                    {
-                        LeftBlue = int.Parse(textLeftBlue.Text) / conv_percent_to_sig;
-                        RightBlue = int.Parse(textRightBlue.Text) / conv_percent_to_sig;
-                        LeftRed = int.Parse(textLeftRed.Text) / conv_percent_to_sig;
-                        RightRed = int.Parse(textRightRed.Text) / conv_percent_to_sig;
-                        LeftGreen = int.Parse(textLeftGreen.Text) / conv_percent_to_sig;
-                        RightGreen = int.Parse(textRightGreen.Text) / conv_percent_to_sig;
-
-                    }
-                    catch (Exception catch_color_border_data)
-                    {
-                        Console.WriteLine(catch_color_border_data);
-
-                    }
-
-                    DateTime s_dt = DateTime.Now;
-                    String current_image_name = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
-                    String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
-                    String cinelite_image_path = resource_dir + current_image_name + ".png";
-                    String current_image_path;
-                    FrameData fd;
-                    
-                    try
-                    {
-                        current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
-                    }
-                    catch (Exception get_name_error)
-                    {
-                        Console.WriteLine(get_name_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    try
-                    {
-                        fd = new FrameData(current_image_path);
-
-                    }
-                    catch (Exception opencv_read_error)
-                    {
-                        Console.WriteLine(opencv_read_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    try
-                    {
-                        fd.ResizeFrame(cinelite_comp_rate);
-
-                    }
-                    catch (Exception opencv_resize_error)
-                    {
-                        Console.WriteLine(opencv_resize_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    fd.cine_convert(LeftBlue, RightBlue, LeftRed, RightRed, LeftGreen, RightGreen);
-
-                    try
-                    {
-                        fd.WriteFrame(cinelite_image_path);
-                    }
-                    catch (Exception opencv_write_error)
-                    {
-                        Console.WriteLine(opencv_write_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    this.MainImage.Source = fd.ReadWriteableBitmap(cinelite_image_path);
-
-                    DateTime e_dt = DateTime.Now;
-                    String end_date = e_dt.ToString("yyyy/MM/dd-HH:mm:ss:fff");
-                    DoEvents();
-
-                }
-            }
-            catch
-            {
-                throw;
-
-            }
-            finally
-            {
-                CineButton.IsEnabled = true;
-                cont.init();
-                DoEvents();
-
-            }
-
-        }
-        */
-
-        /*
-        private void face_image(object sender, RoutedEventArgs e)
-        {
-            FaceButton.IsEnabled = false;
-            double face_comp_rate = 0.5;
-
-            //cinelite parameter
-            double conv_percent_to_sig = 0.39215686274;
-            double LeftBlue = 0;
-            double RightBlue = 0;
-            double LeftRed = 0;
-            double RightRed = 0;
-            double LeftGreen = 0;
-            double RightGreen = 0;
-
-            cont.change_task(Constants.FACE_IMAGE_TASK);
-
-            try
-            {
-                while (cont.getCurrentTask() == Constants.FACE_IMAGE_TASK)
-                {
-                    DateTime s_dt = DateTime.Now;
-                    String current_image_name = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
-                    String str_date = s_dt.ToString("yyyy/MM/dd-HH:mm:ss");
-                    FrameData OriginFrame, GrayFrame, FaceFrame;
-                    OpenCvSharp.Rect[] FaceRects;
-                    String cinelite_image_path = resource_dir + current_image_name + ".png";
-                    String face_image_path = resource_dir + current_image_name + "_face.png";
-                    String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
-
-                    try
-                    {
-                        LeftBlue = int.Parse(textLeftBlue.Text) / conv_percent_to_sig;
-                        RightBlue = int.Parse(textRightBlue.Text) / conv_percent_to_sig;
-                        LeftRed = int.Parse(textLeftRed.Text) / conv_percent_to_sig;
-                        RightRed = int.Parse(textRightRed.Text) / conv_percent_to_sig;
-                        LeftGreen = int.Parse(textLeftGreen.Text) / conv_percent_to_sig;
-                        RightGreen = int.Parse(textRightGreen.Text) / conv_percent_to_sig;
-
-                    }
-                    catch (Exception catch_color_border_data)
-                    {
-                        Console.WriteLine(catch_color_border_data);
-
-                    }
-
-                    try
-                    {
-                        OriginFrame = new FrameData(current_image_path);
-
-                    }
-                    catch (Exception opencv_read_error)
-                    {
-                        Console.WriteLine(opencv_read_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    try
-                    {
-                        OriginFrame.ResizeFrame(face_comp_rate);
-
-                    }
-                    catch (Exception opencv_resize_error)
-                    {
-                        Console.WriteLine(opencv_resize_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    try
-                    {
-                        Mat tmp_mat = OriginFrame.getFrameMat();
-                        GrayFrame = new FrameData(tmp_mat.CvtColor(ColorConversionCodes.BGR2GRAY));
-
-                    }
-                    catch (Exception opencv_cvt_error)
-                    {
-                        Console.WriteLine(opencv_cvt_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    OriginFrame.cine_convert(LeftBlue, RightBlue, LeftRed, RightRed, LeftGreen, RightGreen);
-
-                    try
-                    {
-                        OriginFrame.WriteFrame(cinelite_image_path);
-                    }
-                    catch (Exception opencv_write_error)
-                    {
-                        Console.WriteLine(opencv_write_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    try
-                    {
-                        FaceRects = cascade.DetectMultiScale(GrayFrame.getFrameMat());
-
-                    }
-                    catch (Exception face_detect_error)
-                    {
-                        Console.WriteLine(face_detect_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    if (FaceRects.Length > 0)
-                    {
-                        Console.WriteLine("Face Detection Done.");
-                        OpenCvSharp.Rect FaceRect = FaceRects[0];
-                        Mat tmp_mat = OriginFrame.getFrameMat().Clone(FaceRect);
-                        FaceFrame = new FrameData(tmp_mat);
-
-                        try
-                        {
-                            FaceFrame.WriteFrame(face_image_path);
-
-                        }
-                        catch (Exception opencv_write_error)
-                        {
-                            Console.WriteLine(opencv_write_error);
-                            DoEvents();
-                            continue;
-
-                        }
-
-                    }
-                    else
-                    {
-                        Console.WriteLine("No Detect");
-                        DoEvents();
-                        System.Threading.Thread.Sleep(100);
-                        continue;
-
-                    }
-
-                    this.MainImage.Source = OriginFrame.ReadWriteableBitmap(cinelite_image_path);
-                    this.BaseImage.Source = FaceFrame.ReadWriteableBitmap(face_image_path);
-                    DoEvents();
-
-                }
-            }
-            catch
-            {
-                throw;
-
-            }
-            finally
-            {
-                FaceButton.IsEnabled = true;
-                cont.init();
-                DoEvents();
-
-            }
-        }
-        */
-
-        
         /* HUE Detectで彩度と色相範囲を用いて抽出し、Gamma補正をかけつつ色を比較 */
         private void hue_image(object sender, RoutedEventArgs e)
         {
@@ -553,7 +250,18 @@ namespace VeManagerApp
                 }
 
                 this.BaseImage.Source = BaseFrame.ReadWriteableBitmap(base_image_path);
-                Vec3d base_point = BaseFrame.cal_ave_point();
+                Vec3d base_point;
+                try
+                {
+                    base_point = BaseFrame.cal_ave_point();
+                }
+                catch (DivideByZeroException no_target_pixel_error)
+                {
+                    Console.WriteLine(no_target_pixel_error);
+                    DoEvents();
+                    throw; // ⇒catch句
+
+                }
 
                 //以下, HUEの比較計算処理
                 HueText.Inlines.Clear();
@@ -621,11 +329,33 @@ namespace VeManagerApp
 
                     // hue_detect_convert(saturation percent, hue start angle, hue end angle)
                     CurrentFrame.hue_detect_convert(RedSatur, LeftRed, RightRed);
+                    Vec3d current_point;
+                    try
+                    {
+                        current_point = CurrentFrame.cal_ave_point();//Gamma補正前
 
-                    Vec3d current_point = CurrentFrame.cal_ave_point();//gamma補正前
-                    double gamma_lambda = Math.Log(base_point.Item2 / 255) / Math.Log(current_point.Item2 / 255);
-                    CurrentFrame.gamma_correction(gamma_lambda);
-                    Vec3d gamma_current_point = CurrentFrame.cal_ave_point();//gammga補正により輝度平均をそろえる
+                    }
+                    catch(DivideByZeroException no_target_pixel_error)
+                    {
+                        Console.WriteLine(no_target_pixel_error);
+                        DoEvents();
+                        continue;
+
+                    }
+                    double gamma_lambda = Math.Log(base_point.Item2 / 255) / Math.Log(current_point.Item2 / 255); //補正指数値計算
+                    CurrentFrame.gamma_correction(gamma_lambda); //gamma補正
+                    Vec3d gamma_current_point;
+                    try
+                    {
+                        gamma_current_point = CurrentFrame.cal_ave_point();//gammga補正後（輝度平均がそろう）
+                    }
+                    catch (DivideByZeroException no_target_pixel_error)
+                    {
+                        Console.WriteLine(no_target_pixel_error);
+                        DoEvents();
+                        continue;
+
+                    }
 
                     /* R/Bのベクトル方程式を解いてR/Bの二軸で表現する */
                     dif_X_point = (gamma_current_point.Item1 - base_point.Item1); // X軸値 εX
@@ -691,14 +421,13 @@ namespace VeManagerApp
 
                     }
                     
-                    Thread.Sleep(100);
+                    Thread.Sleep(10);
 
                 }
 
             }
             catch
             {
-                throw;
 
             }
             finally
@@ -722,6 +451,7 @@ namespace VeManagerApp
             Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background,
                 new DispatcherOperationCallback(ExitFrames), frame);
             Dispatcher.PushFrame(frame);
+
         }
 
 
@@ -729,6 +459,7 @@ namespace VeManagerApp
         {
             ((DispatcherFrame)f).Continue = false;
             return null;
+
         }
 
 
@@ -763,7 +494,6 @@ namespace VeManagerApp
             e.Handled = !new Regex("[0-9]").IsMatch(e.Text);
         }
 
-
         private void textBox_PreviewExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             // 貼り付けを許可しない
@@ -773,18 +503,15 @@ namespace VeManagerApp
             }
         }
 
-
         private void Write_Button(object sender, RoutedEventArgs e)
         {
             //新規書き込みクラスのインスタンス化
             TextWrite textWrite = new TextWrite();
 
             config_filename = WriteFileName.Text.ToString();
-            config_texts = textLeftRed.Text + "," + textRightRed.Text + "," + textLeftGreen.Text + "," + textRightGreen.Text + "," + textLeftBlue.Text + "," + textRightBlue.Text;
-
+            config_texts = textLeftRed.Text + "," + textRightRed.Text + "," + textLeftGreen.Text + "," + textRightGreen.Text + "," + textLeftBlue.Text + "," + textRightBlue.Text + "," + textRedSatur.Text + "," + textGreenSatur.Text + "," + textBlueSatur.Text;
             textWrite.Write(config_filename, config_texts);
         }
-
 
         //読み込み
         private void Read_Button(object sender, RoutedEventArgs e)
@@ -796,7 +523,7 @@ namespace VeManagerApp
 
             String FileContent = readText.Read(config_filename);
             string[] ParameterArray = FileContent.Split(',');
-            if (ParameterArray.Length != 6)
+            if (ParameterArray.Length != 9)
             {
                 MessageBox.Show("設定ファイルの形式に問題があります", "ファイルエラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -809,10 +536,11 @@ namespace VeManagerApp
                 textRightGreen.Text = ParameterArray[3];
                 textLeftBlue.Text = ParameterArray[4];
                 textRightBlue.Text = ParameterArray[5];
+                textRedSatur.Text = ParameterArray[6];
+                textGreenSatur.Text = ParameterArray[7];
+                textBlueSatur.Text = ParameterArray[8];
 
             }
-
-
         }
 
 
