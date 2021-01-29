@@ -25,12 +25,12 @@ namespace VeManagerApp
         private Constants cont = new Constants();
         
         //FrameDataの取り込み先(上は開発, 下はPC)
-        //private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
-        private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
+        private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
+        //private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
 
         //CaptureStillsのOutput(上は開発PC, 下はPC)
-        //private string captured_image_dir = "R:\\Temp\\";
-        private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
+        private string captured_image_dir = "R:\\Temp\\";
+        //private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
         
         private string config_filename;
         private string config_texts;
@@ -234,6 +234,17 @@ namespace VeManagerApp
 
                 }
 
+                //類似度計算
+                Mat base_hist_r = new Mat();
+                Mat base_hist_g = new Mat();
+                Mat base_hist_b = new Mat();
+
+                Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 0 }, new Mat(), base_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+                Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 1 }, new Mat(), base_hist_g, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+                Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 2 }, new Mat(), base_hist_r, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+
+                //類似度計算終了
+
                 //Border Saturation Percent
                 BaseFrame.hue_detect_convert(RedSatur, LeftRed, RightRed); 
 
@@ -327,7 +338,23 @@ namespace VeManagerApp
 
                     }
 
-                    // hue_detect_convert(saturation percent, hue start angle, hue end angle)
+                    //類似度計算
+                    Mat current_hist_b = new Mat();
+                    Mat current_hist_g = new Mat();
+                    Mat current_hist_r = new Mat();
+
+                    Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 0 }, new Mat(), current_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+                    Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 1 }, new Mat(), current_hist_g, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+                    Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 2 }, new Mat(), current_hist_r, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+
+                    var ret_b = Cv2.CompareHist(current_hist_b, base_hist_b, 0);
+                    var ret_g = Cv2.CompareHist(current_hist_g, base_hist_g, 0);
+                    var ret_r = Cv2.CompareHist(current_hist_r, base_hist_r, 0);
+
+                    //類似度計算 終了
+
+
+                    //hue_detect_convert(saturation percent, hue start angle, hue end angle)
                     CurrentFrame.hue_detect_convert(RedSatur, LeftRed, RightRed);
                     Vec3d current_point;
                     try
@@ -344,6 +371,7 @@ namespace VeManagerApp
                     }
                     double gamma_lambda = Math.Log(base_point.Item2 / 255) / Math.Log(current_point.Item2 / 255); //補正指数値計算
                     CurrentFrame.gamma_correction(gamma_lambda); //gamma補正
+
                     Vec3d gamma_current_point;
                     try
                     {
@@ -393,7 +421,14 @@ namespace VeManagerApp
 
                     HueTextYsig.Inlines.Add(new Run("Y信号差分"));
                     HueTextYsig.Inlines.Add(dif_Ysig_point.ToString());
-                    HueTextYsig.Inlines.Add("%");
+                    HueTextYsig.Inlines.Add("%\n");
+                    HueTextYsig.Inlines.Add(ret_b.ToString());
+                    HueTextYsig.Inlines.Add("%\n");
+                    HueTextYsig.Inlines.Add(ret_g.ToString());
+                    HueTextYsig.Inlines.Add("%\n");
+                    HueTextYsig.Inlines.Add(ret_r.ToString());
+                    HueTextYsig.Inlines.Add("%\n");
+
                     HueTextYsig.FontSize = 30;
                     HueTextYsig.TextAlignment = TextAlignment.Center;
                     HueTextYsig.Foreground = Brushes.White;

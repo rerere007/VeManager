@@ -102,6 +102,8 @@ namespace VeManagerApp
             }
 
         }
+
+
         public WriteableBitmap ReadWriteableBitmap(string target_image_path)
         {
             //lock less bitmap
