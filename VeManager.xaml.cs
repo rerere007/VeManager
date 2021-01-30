@@ -2,6 +2,7 @@
 using Reactive.Bindings;
 using System;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
@@ -25,12 +26,12 @@ namespace VeManagerApp
         private Constants cont = new Constants();
         
         //FrameDataの取り込み先(上は開発, 下はPC)
-        private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
-        //private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
+        //private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
+        private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
 
         //CaptureStillsのOutput(上は開発PC, 下はPC)
-        private string captured_image_dir = "R:\\Temp\\";
-        //private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
+        //private string captured_image_dir = "R:\\Temp\\";
+        private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
         
         private string config_filename;
         private string config_texts;
@@ -39,8 +40,10 @@ namespace VeManagerApp
         public VeManager()
         {
             string config_db_path = current_app_dir + "\\" + "ConfigDB";
+            string log_db_path = current_app_dir + "\\" + "SystemLog";
 
             SafeCreateDirectory(config_db_path);
+            SafeCreateDirectory(log_db_path);
             InitializeComponent();
 
         }
@@ -65,7 +68,7 @@ namespace VeManagerApp
 
                     try
                     {
-                        current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
+                        current_image_path = captured_image_dir + GetNewestFileName(captured_image_dir);
                     }
                     catch (Exception get_name_error)
                     {
@@ -154,8 +157,14 @@ namespace VeManagerApp
             HueButton.IsEnabled = false;
             double hue_comp_rate = 0.5;
             double Ysig_range = 5.0; //Y信号%ずれを許容する範囲
+            double similar_border = 70; //類似度を許容する範囲
             double conv_percent_to_sig = 0.39215686274;
-            
+
+            DateTime dt = DateTime.Now;
+            String exe_time = GetCurrentAppDir() + "\\SystemLog\\" + dt.ToString("yyyy_MM_dd-HH_mm_ss_fff") + ".txt";
+            FileStream exe_time_stream = File.Open(exe_time, FileMode.OpenOrCreate);
+            StreamWriter exe_stream_writer = new StreamWriter(exe_time_stream, System.Text.Encoding.UTF8);
+
             double LeftBlue = 0;
             double RightBlue = 0;
             double LeftRed = 0;
@@ -166,13 +175,25 @@ namespace VeManagerApp
             double RedSatur = 0;
             double GreenSatur = 0;
 
+            double ret_b = 0;
+            double ret_g = 0;
+            double ret_r = 0;
+            Mat current_hist_b = new Mat();
+            Mat current_hist_g = new Mat();
+            Mat current_hist_r = new Mat();
+            Mat base_hist_r = new Mat();
+            Mat base_hist_g = new Mat();
+            Mat base_hist_b = new Mat();
+
+
+
             cont.change_task(Constants.HUE_IMAGE_TASK);
 
             try
             {
 
                 String base_image_path = resource_dir + "base_image.png";
-                String current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
+                String current_image_path = captured_image_dir + GetNewestFileName(captured_image_dir);
                 FrameData CaptureFrame, BaseFrame;
 
                 try
@@ -235,14 +256,9 @@ namespace VeManagerApp
                 }
 
                 //類似度計算
-                Mat base_hist_r = new Mat();
-                Mat base_hist_g = new Mat();
-                Mat base_hist_b = new Mat();
-
                 Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 0 }, new Mat(), base_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
                 Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 1 }, new Mat(), base_hist_g, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
                 Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 2 }, new Mat(), base_hist_r, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
-
                 //類似度計算終了
 
                 //Border Saturation Percent
@@ -286,7 +302,7 @@ namespace VeManagerApp
                     DateTime s_dt = DateTime.Now;
                     String image = s_dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
                     String hue_image_path = resource_dir + image + ".png";
-                    current_image_path = captured_image_dir + getNewestFileName(captured_image_dir);
+                    current_image_path = captured_image_dir + GetNewestFileName(captured_image_dir);
                     FrameData CurrentFrame;
                     double dif_Y_point = 0, dif_X_point = 0, dif_Ysig_point = 0;
                     double dif_R_axis = 0, dif_B_axis = 0;
@@ -339,18 +355,12 @@ namespace VeManagerApp
                     }
 
                     //類似度計算
-                    Mat current_hist_b = new Mat();
-                    Mat current_hist_g = new Mat();
-                    Mat current_hist_r = new Mat();
-
                     Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 0 }, new Mat(), current_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
                     Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 1 }, new Mat(), current_hist_g, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
                     Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 2 }, new Mat(), current_hist_r, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
-
-                    var ret_b = Cv2.CompareHist(current_hist_b, base_hist_b, 0);
-                    var ret_g = Cv2.CompareHist(current_hist_g, base_hist_g, 0);
-                    var ret_r = Cv2.CompareHist(current_hist_r, base_hist_r, 0);
-
+                    ret_b = Math.Round(Cv2.CompareHist(current_hist_b, base_hist_b, 0), 1, MidpointRounding.AwayFromZero) * 100;
+                    ret_g = Math.Round(Cv2.CompareHist(current_hist_g, base_hist_g, 0), 1, MidpointRounding.AwayFromZero) * 100;
+                    ret_r = Math.Round(Cv2.CompareHist(current_hist_r, base_hist_r, 0), 1, MidpointRounding.AwayFromZero) * 100;
                     //類似度計算 終了
 
 
@@ -400,62 +410,31 @@ namespace VeManagerApp
 
                     DoEvents();
 
-                    // ここからは表示
                     try
                     {
-                        CurrentFrame.WriteFrame(hue_image_path);
+                        if(ViewResult(CurrentFrame, hue_image_path, Ysig_range, similar_border, dif_Y_point, dif_R_axis, dif_B_axis, ret_b, ret_g, ret_r))
+                        {
+                            exe_stream_writer.WriteLine("---------------------------------------------");
+                            exe_stream_writer.WriteLine(current_point.Item2 * conv_percent_to_sig);
+                            exe_stream_writer.WriteLine(dif_Ysig_point);
+                            exe_stream_writer.WriteLine(dif_R_axis);
+                            exe_stream_writer.WriteLine(dif_B_axis);
+
+                        }
+                        else
+                        {
+                            continue;
+
+                        }
 
                     }
-                    catch (Exception opencv_write_error)
+                    catch(Exception opencv_write_error)
                     {
                         Console.WriteLine(opencv_write_error);
                         DoEvents();
                         continue;
-
                     }
-                    this.MainImage.Source = CurrentFrame.ReadWriteableBitmap(hue_image_path);
 
-                    HueTextYsig.Inlines.Clear();
-                    HueTextRed.Inlines.Clear();
-                    HueTextBlue.Inlines.Clear();
-
-                    HueTextYsig.Inlines.Add(new Run("Y信号差分"));
-                    HueTextYsig.Inlines.Add(dif_Ysig_point.ToString());
-                    HueTextYsig.Inlines.Add("%\n");
-                    HueTextYsig.Inlines.Add(ret_b.ToString());
-                    HueTextYsig.Inlines.Add("%\n");
-                    HueTextYsig.Inlines.Add(ret_g.ToString());
-                    HueTextYsig.Inlines.Add("%\n");
-                    HueTextYsig.Inlines.Add(ret_r.ToString());
-                    HueTextYsig.Inlines.Add("%\n");
-
-                    HueTextYsig.FontSize = 30;
-                    HueTextYsig.TextAlignment = TextAlignment.Center;
-                    HueTextYsig.Foreground = Brushes.White;
-
-                    if ((dif_Ysig_point < -1 * Ysig_range) | (dif_Ysig_point > Ysig_range))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-
-                        HueTextRed.Inlines.Add(new Run("赤色ずれ "));
-                        HueTextRed.Inlines.Add(dif_R_axis.ToString());
-                        HueTextRed.Inlines.Add("%");
-                        HueTextRed.FontSize = 30;
-                        HueTextRed.TextAlignment = TextAlignment.Center;
-                        HueTextRed.Foreground = Brushes.Red;
-
-                        HueTextBlue.Inlines.Add(new Run("青色ずれ "));
-                        HueTextBlue.Inlines.Add(dif_B_axis.ToString());
-                        HueTextBlue.Inlines.Add("%");
-                        HueTextBlue.FontSize = 30;
-                        HueTextBlue.TextAlignment = TextAlignment.Center;
-                        HueTextBlue.Foreground = Brushes.Navy;
-
-                    }
-                    
                     Thread.Sleep(10);
 
                 }
@@ -469,15 +448,89 @@ namespace VeManagerApp
             {
                 var source = new BitmapImage();
                 this.MainImage.Source = source;
-                HueButton.IsEnabled = true;
+                exe_stream_writer.Close();
                 HueTextYsig.Inlines.Clear();
                 HueTextRed.Inlines.Clear();
                 HueTextBlue.Inlines.Clear();
                 cont.init();
+                HueButton.IsEnabled = true;
                 DoEvents();
 
             }
         }
+
+        private bool ViewResult(FrameData CurrentFrame, String hue_image_path, double Ysig_range, double similar_border, double dif_Ysig_point, double dif_R_axis, double dif_B_axis, double ret_b, double ret_g, double ret_r)
+        {
+            // ここからは表示
+            try
+            {
+                CurrentFrame.WriteFrame(hue_image_path);
+
+            }
+            catch (Exception opencv_write_error)
+            {
+                throw opencv_write_error;
+
+            }
+            this.MainImage.Source = CurrentFrame.ReadWriteableBitmap(hue_image_path);
+
+            HueTextYsig.Inlines.Clear();
+            HueTextRed.Inlines.Clear();
+            HueTextBlue.Inlines.Clear();
+
+            HueTextYsig.Inlines.Add(new Run("Y信号差分"));
+            HueTextYsig.Inlines.Add(dif_Ysig_point.ToString());
+            HueTextYsig.Inlines.Add("%\n");
+            HueTextYsig.Inlines.Add(ret_b.ToString());
+            HueTextYsig.Inlines.Add("%, ");
+            HueTextYsig.Inlines.Add(ret_g.ToString());
+            HueTextYsig.Inlines.Add("%, ");
+            HueTextYsig.Inlines.Add(ret_r.ToString());
+            HueTextYsig.Inlines.Add("%\n");
+
+            HueTextYsig.FontSize = 30;
+            HueTextYsig.TextAlignment = TextAlignment.Center;
+            HueTextYsig.Foreground = Brushes.White;
+
+            if ((ret_b < similar_border) | (ret_g < similar_border) | (ret_r < similar_border))
+            {
+                HueTextYsig.Inlines.Add("画角不一致\n");
+                return false;
+
+            } else
+            {
+                HueTextYsig.Inlines.Add("画角一致\n");
+
+            }
+
+
+            if ((dif_Ysig_point < -1 * Ysig_range) | (dif_Ysig_point > Ysig_range))
+            {
+                return false;
+
+            }
+            else
+            {
+
+                HueTextRed.Inlines.Add(new Run("赤色ずれ "));
+                HueTextRed.Inlines.Add(dif_R_axis.ToString());
+                HueTextRed.Inlines.Add("%");
+                HueTextRed.FontSize = 30;
+                HueTextRed.TextAlignment = TextAlignment.Center;
+                HueTextRed.Foreground = Brushes.Red;
+
+                HueTextBlue.Inlines.Add(new Run("青色ずれ "));
+                HueTextBlue.Inlines.Add(dif_B_axis.ToString());
+                HueTextBlue.Inlines.Add("%");
+                HueTextBlue.FontSize = 30;
+                HueTextBlue.TextAlignment = TextAlignment.Center;
+                HueTextBlue.Foreground = Brushes.Navy;
+
+                return true;
+
+            }
+        }
+
 
         // ↓ ここから独自開発のDoEvents()
         private void DoEvents()
@@ -498,7 +551,7 @@ namespace VeManagerApp
         }
 
 
-        private string getNewestFileName(string folderName)
+        private string GetNewestFileName(string folderName)
         {
             // 指定されたフォルダ内のdatファイル名をすべて取得する
             string[] files = System.IO.Directory.GetFiles(folderName, "*.png", System.IO.SearchOption.TopDirectoryOnly);
