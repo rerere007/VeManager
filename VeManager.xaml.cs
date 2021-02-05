@@ -156,7 +156,7 @@ namespace VeManagerApp
         {
             HueButton.IsEnabled = false;
             double hue_comp_rate = 0.5;
-            double Ysig_range = 5.0; //Y信号%ずれを許容する範囲
+            double Ysig_range = 20.0; //Y信号%ずれを許容する範囲
             double similar_border = 70; //類似度を許容する範囲
             double conv_percent_to_sig = 0.39215686274;
 
@@ -175,6 +175,7 @@ namespace VeManagerApp
             double RedSatur = 0;
             double GreenSatur = 0;
 
+            /*
             double ret_b = 0;
             double ret_g = 0;
             double ret_r = 0;
@@ -184,7 +185,7 @@ namespace VeManagerApp
             Mat base_hist_r = new Mat();
             Mat base_hist_g = new Mat();
             Mat base_hist_b = new Mat();
-
+            */
 
 
             cont.change_task(Constants.HUE_IMAGE_TASK);
@@ -255,10 +256,28 @@ namespace VeManagerApp
 
                 }
 
-                //類似度計算
+                try
+                {
+                    /* save grayimage */
+                    BaseFrame.GrayFrame();
+
+                }
+                catch (Exception opencv_gray_error)
+                {
+                    Console.WriteLine(opencv_gray_error);
+                    DoEvents();
+
+                }
+
+                //Detect key point
+                BaseFrame.FrameDetectAndCompute();
+
+                //hist類似度計算
+                /*
                 Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 0 }, new Mat(), base_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
                 Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 1 }, new Mat(), base_hist_g, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
                 Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 2 }, new Mat(), base_hist_r, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+                */
                 //類似度計算終了
 
                 //Border Saturation Percent
@@ -354,13 +373,32 @@ namespace VeManagerApp
 
                     }
 
-                    //類似度計算
+                    try
+                    {
+                        /* save grayimage */
+                        CurrentFrame.GrayFrame();
+
+                    }
+                    catch (Exception opencv_gray_error)
+                    {
+                        Console.WriteLine(opencv_gray_error);
+                        DoEvents();
+
+                    }
+
+                    //Detect key point
+                    CurrentFrame.FrameDetectAndCompute();
+                    double avg_partial_distance = BaseFrame.CalcDistance(CurrentFrame);
+
+                    //類似度計算 
+                    /*
                     Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 0 }, new Mat(), current_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
                     Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 1 }, new Mat(), current_hist_g, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
                     Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 2 }, new Mat(), current_hist_r, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
                     ret_b = Math.Round(Cv2.CompareHist(current_hist_b, base_hist_b, 0), 1, MidpointRounding.AwayFromZero) * 100;
                     ret_g = Math.Round(Cv2.CompareHist(current_hist_g, base_hist_g, 0), 1, MidpointRounding.AwayFromZero) * 100;
                     ret_r = Math.Round(Cv2.CompareHist(current_hist_r, base_hist_r, 0), 1, MidpointRounding.AwayFromZero) * 100;
+                    */
                     //類似度計算 終了
 
 
@@ -412,7 +450,7 @@ namespace VeManagerApp
 
                     try
                     {
-                        if(ViewResult(CurrentFrame, hue_image_path, Ysig_range, similar_border, dif_Y_point, dif_R_axis, dif_B_axis, ret_b, ret_g, ret_r))
+                        if(ViewResult(CurrentFrame, hue_image_path, Ysig_range, similar_border, dif_Y_point, dif_R_axis, dif_B_axis, avg_partial_distance))
                         {
                             exe_stream_writer.WriteLine("---------------------------------------------");
                             exe_stream_writer.WriteLine(current_point.Item2 * conv_percent_to_sig);
@@ -433,6 +471,7 @@ namespace VeManagerApp
                         Console.WriteLine(opencv_write_error);
                         DoEvents();
                         continue;
+
                     }
 
                     Thread.Sleep(10);
@@ -459,7 +498,7 @@ namespace VeManagerApp
             }
         }
 
-        private bool ViewResult(FrameData CurrentFrame, String hue_image_path, double Ysig_range, double similar_border, double dif_Ysig_point, double dif_R_axis, double dif_B_axis, double ret_b, double ret_g, double ret_r)
+        private bool ViewResult(FrameData CurrentFrame, String hue_image_path, double Ysig_range, double similar_border, double dif_Ysig_point, double dif_R_axis, double dif_B_axis, double avg_partial_distance)
         {
             // ここからは表示
             try
@@ -481,18 +520,15 @@ namespace VeManagerApp
             HueTextYsig.Inlines.Add(new Run("Y信号差分"));
             HueTextYsig.Inlines.Add(dif_Ysig_point.ToString());
             HueTextYsig.Inlines.Add("%\n");
-            HueTextYsig.Inlines.Add(ret_b.ToString());
-            HueTextYsig.Inlines.Add("%, ");
-            HueTextYsig.Inlines.Add(ret_g.ToString());
-            HueTextYsig.Inlines.Add("%, ");
-            HueTextYsig.Inlines.Add(ret_r.ToString());
-            HueTextYsig.Inlines.Add("%\n");
+            HueTextYsig.Inlines.Add(avg_partial_distance.ToString());
+            HueTextYsig.Inlines.Add("\n");
 
             HueTextYsig.FontSize = 30;
             HueTextYsig.TextAlignment = TextAlignment.Center;
             HueTextYsig.Foreground = Brushes.White;
 
-            if ((ret_b < similar_border) | (ret_g < similar_border) | (ret_r < similar_border))
+            //特徴量距離がボーダー値より離れているかどうかを比較. ボーダー値は事前に３００フレーム程度キャリブレーションする必要がある。
+            if (avg_partial_distance >= similar_border)
             {
                 HueTextYsig.Inlines.Add("画角不一致\n");
                 return false;
@@ -502,7 +538,6 @@ namespace VeManagerApp
                 HueTextYsig.Inlines.Add("画角一致\n");
 
             }
-
 
             if ((dif_Ysig_point < -1 * Ysig_range) | (dif_Ysig_point > Ysig_range))
             {

@@ -17,6 +17,12 @@ namespace VeManagerApp
     class FrameData
     {
         private Mat frame_mat;
+        private Mat gray_frame_mat = new Mat();
+        private BFMatcher bfMatcher = new BFMatcher(NormTypes.Hamming, false);
+        private AKAZE akaze = AKAZE.Create(); //AKAZEのセットアップ
+        private KeyPoint[] frame_keypoint;        //比較元画像の特徴点
+        private Mat frame_desc = new Mat();  //比較元画像の特徴量
+
 
         public FrameData(string read_image_path)
         {
@@ -62,7 +68,6 @@ namespace VeManagerApp
                 throw;
 
             }
-
         }
 
         public void ResizeFrame(double comp_rate)
@@ -81,10 +86,53 @@ namespace VeManagerApp
             }
 
         }
+        public void GrayFrame()
+        {
+            try
+            {
+                Cv2.CvtColor(frame_mat, gray_frame_mat, ColorConversionCodes.BGR2XYZ);
+                //BGR -> XYZ, Y = 709 Ysig
+            }
+            catch (Exception opencv_gray_error)
+            {
+                Console.WriteLine(opencv_gray_error);
+                throw;
+
+            }
+
+        }
 
         public Mat getFrameMat()
         {
             return this.frame_mat;
+
+        }
+
+        public Mat getGrayFrameMat()
+        {
+            return this.gray_frame_mat;
+
+        }
+
+        public void FrameDetectAndCompute()
+        {
+            this.akaze.DetectAndCompute(this.gray_frame_mat, null, out this.frame_keypoint, this.frame_desc);
+
+        }
+
+        public double CalcDistance(FrameData target_frame)
+        {
+            double avg_partial_distance = 0;
+            DMatch[] matches;
+
+            matches =  this.bfMatcher.Match(this.frame_desc, target_frame.frame_desc);
+            foreach(var m in matches)
+            {
+                avg_partial_distance = m.Distance;
+            }
+            avg_partial_distance = avg_partial_distance / matches.Length;
+            return avg_partial_distance;
+
         }
 
         public void WriteFrame(string write_image_path)

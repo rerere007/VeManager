@@ -116,3 +116,4 @@ C:\Users\0000526030\source\repos\VeManager\obj\Release\VeManagerApp.csproj.CoreC
 C:\Users\0000526030\source\repos\VeManager\obj\Release\VeManagerApp.csproj.CopyComplete
 C:\Users\0000526030\source\repos\VeManager\obj\Release\VeManagerApp.exe
 C:\Users\0000526030\source\repos\VeManager\obj\Release\VeManagerApp.pdb
+C:\Users\0000526030\source\repos\VeManager\obj\Release\VeManagerApp.csprojAssemblyReference.cache
