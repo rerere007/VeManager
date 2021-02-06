@@ -173,7 +173,7 @@ namespace VeManagerApp
             bool list_sort_flag = false;
             double max_avg_partial_distance = 0;
             double min_avg_partial_distance = 0;
-            double similarity_border = 0.5; //類似度を許容する範囲(from 0 to 1) サンプルの上位何%とかから自動計算のがいいかも
+            double similarity_border = 0.5; //サンプルの上位何%か
 
             double LowerAngle = 0;
             double UpperAngle = 0;
@@ -401,24 +401,23 @@ namespace VeManagerApp
                     if (!list_sort_flag)
                     {
                         train_distance_list.Sort();
-                        double border_avg_partial_distance = train_distance_list[(int)(train_frame_num * similarity_border)];
                         list_sort_flag = true;
 
                     }
 
-                    if(avg_partial_distance >= max_avg_partial_distance)
-                    {
-                        similarity_rate = 100;
-
-                    }
-                    else if (avg_partial_distance <= min_avg_partial_distance)
+                    if(avg_partial_distance > max_avg_partial_distance)
                     {
                         similarity_rate = 0;
 
                     }
+                    else if (avg_partial_distance <= min_avg_partial_distance)
+                    {
+                        similarity_rate = 1;
+
+                    }
                     else
                     {
-                        similarity_rate = (1 - ((avg_partial_distance - min_avg_partial_distance) / (max_avg_partial_distance - min_avg_partial_distance))) * 100;
+                        similarity_rate = (1 - ((avg_partial_distance - min_avg_partial_distance) / (max_avg_partial_distance - min_avg_partial_distance)));
 
                     }
 
@@ -561,7 +560,7 @@ namespace VeManagerApp
             HueTextYsig.Foreground = Brushes.White;
 
             //特徴量距離がボーダー値より離れているかどうかを比較. ボーダー値は事前に1分程度キャリブレーションする必要がある。
-            if (similarity_rate >= (similarity_border * 100))
+            if (similarity_rate <= similarity_border)
             {
                 HueTextYsig.Inlines.Add("画角不一致\n");
                 return false;
