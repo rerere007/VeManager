@@ -90,8 +90,10 @@ namespace VeManagerApp
         {
             try
             {
-                Cv2.CvtColor(frame_mat, gray_frame_mat, ColorConversionCodes.BGR2XYZ);
-                //BGR -> XYZ, Y = 709 Ysig
+                Cv2.CvtColor(frame_mat, gray_frame_mat, ColorConversionCodes.BGR2GRAY);
+                //BGR2XYZ, Y = 709 Ysig, 2channel
+                //BGR2GRAY, Y = 0.299 * R + 0.587 * G + 0.114 * B
+
             }
             catch (Exception opencv_gray_error)
             {
@@ -300,6 +302,7 @@ namespace VeManagerApp
 
         }
 
+        /* ２次元データの重心計算 */
         public Vec3d cal_ave_point()
         {
             Vec3d result_point;

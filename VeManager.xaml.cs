@@ -167,11 +167,13 @@ namespace VeManagerApp
             StreamWriter exe_stream_writer = new StreamWriter(exe_time_stream, System.Text.Encoding.UTF8);
 
             /* Train Frame Number */
-            int train_frame_num = 100;
+            int train_frame_num = 500;
             int train_count_num = 0;
             List<double> train_distance_list = new List<double>();
+            bool list_sort_flag = false;
             double max_avg_partial_distance = 0;
-            double similarity_border = 0.2; //類似度を許容する範囲(from 0 to 1) サンプルの上位何%とかから自動計算のがいいかも
+            double min_avg_partial_distance = 0;
+            double similarity_border = 0.5; //類似度を許容する範囲(from 0 to 1) サンプルの上位何%とかから自動計算のがいいかも
 
             double LowerAngle = 0;
             double UpperAngle = 0;
@@ -390,22 +392,35 @@ namespace VeManagerApp
                         train_distance_list.Add(avg_partial_distance);
                         train_count_num++;
                         max_avg_partial_distance = train_distance_list.Max();
-                        Thread.Sleep(30);
+                        min_avg_partial_distance = train_distance_list.Min();
+                        Thread.Sleep(10);
                         continue;
 
                     }
 
-                    if(max_avg_partial_distance == 0)
+                    if (!list_sort_flag)
                     {
-                        similarity_rate = 1;
+                        train_distance_list.Sort();
+                        double border_avg_partial_distance = train_distance_list[(int)(train_frame_num * similarity_border)];
+                        list_sort_flag = true;
+
+                    }
+
+                    if(avg_partial_distance >= max_avg_partial_distance)
+                    {
+                        similarity_rate = 100;
+
+                    }
+                    else if (avg_partial_distance <= min_avg_partial_distance)
+                    {
+                        similarity_rate = 0;
 
                     }
                     else
                     {
-                        similarity_rate = (1 - avg_partial_distance / max_avg_partial_distance);
+                        similarity_rate = (1 - ((avg_partial_distance - min_avg_partial_distance) / (max_avg_partial_distance - min_avg_partial_distance))) * 100;
 
                     }
-
 
                     //類似度計算 
                     /*
@@ -546,7 +561,7 @@ namespace VeManagerApp
             HueTextYsig.Foreground = Brushes.White;
 
             //特徴量距離がボーダー値より離れているかどうかを比較. ボーダー値は事前に1分程度キャリブレーションする必要がある。
-            if (similarity_rate >= similarity_border)
+            if (similarity_rate >= (similarity_border * 100))
             {
                 HueTextYsig.Inlines.Add("画角不一致\n");
                 return false;
