@@ -150,100 +150,6 @@ namespace VeManagerApp
             HueText.Inlines.Clear();
 
         }
-        private void train_image(object sender, RoutedEventArgs e)
-        {
-            TrainButton.IsEnabled = false;
-            double train_comp_rate = 0.5;
-            cont.change_task(Constants.TRAIN_IMAGE_TASK);
-
-            try
-            {
-
-                while (cont.getCurrentTask() == Constants.TRAIN_IMAGE_TASK)
-                {
-                    DateTime dt = DateTime.Now;
-                    String current_image_name = dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
-                    String train_image_path = resource_dir + current_image_name + ".png";
-                    FrameData fd;
-
-                    String current_image_path;
-
-                    try
-                    {
-                        current_image_path = captured_image_dir + GetNewestFileName(captured_image_dir);
-                    }
-                    catch (Exception get_name_error)
-                    {
-                        Console.WriteLine(get_name_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    try
-                    {
-                        fd = new FrameData(current_image_path);
-
-                    }
-                    catch (Exception opencv_read_error)
-                    {
-                        Console.WriteLine(opencv_read_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    try
-                    {
-                        fd.ResizeFrame(train_comp_rate);
-
-                    }
-                    catch (Exception opencv_resize_error)
-                    {
-                        Console.WriteLine(opencv_resize_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-                    try
-                    {
-                        fd.WriteFrame(train_image_path);
-
-                    }
-                    catch (Exception opencv_write_error)
-                    {
-                        Console.WriteLine(opencv_write_error);
-                        DoEvents();
-                        continue;
-
-                    }
-
-
-
-
-                    //lock less bitmap
-                    this.MainImage.Source = fd.ReadWriteableBitmap(train_image_path);
-                    DoEvents();
-
-                }
-            }
-            catch
-            {
-                throw;
-
-            }
-            finally
-            {
-                TrainButton.IsEnabled = true;
-                cont.init();
-                DoEvents();
-
-            }
-
-
-        }
-
 
         /* HUE Detectで彩度と色相範囲を用いて抽出し、Gamma補正をかけつつ色を比較 */
         private void hue_image(object sender, RoutedEventArgs e)
@@ -259,15 +165,11 @@ namespace VeManagerApp
             FileStream exe_time_stream = File.Open(exe_time, FileMode.OpenOrCreate);
             StreamWriter exe_stream_writer = new StreamWriter(exe_time_stream, System.Text.Encoding.UTF8);
 
-            double LeftBlue = 0;
-            double RightBlue = 0;
-            double LeftRed = 0;
-            double RightRed = 0;
-            double LeftGreen = 0;
-            double RightGreen = 0;
-            double BlueSatur = 0;
-            double RedSatur = 0;
-            double GreenSatur = 0;
+
+            double LowerAngle = 0;
+            double UpperAngle = 0;
+            double LowerSatur = 0;
+
 
             /*
             double ret_b = 0;
@@ -293,15 +195,10 @@ namespace VeManagerApp
 
                 try
                 {
-                    LeftBlue = double.Parse(textLeftBlue.Text);
-                    RightBlue = double.Parse(textRightBlue.Text);
-                    LeftRed = double.Parse(textLeftRed.Text);
-                    RightRed = double.Parse(textRightRed.Text);
-                    LeftGreen = double.Parse(textLeftGreen.Text);
-                    RightGreen = double.Parse(textRightGreen.Text);
-                    BlueSatur = double.Parse(textBlueSatur.Text);
-                    RedSatur = double.Parse(textRedSatur.Text);
-                    GreenSatur = double.Parse(textGreenSatur.Text);
+
+                    LowerAngle = double.Parse(TextLowerAngle.Text);
+                    UpperAngle = double.Parse(TextUpperAngle.Text);
+                    LowerSatur = double.Parse(TextLowerSatur.Text);
 
                 }
                 catch (Exception catch_color_border_data)
@@ -375,7 +272,7 @@ namespace VeManagerApp
                 //類似度計算終了
 
                 //Border Saturation Percent
-                BaseFrame.hue_detect_convert(RedSatur, LeftRed, RightRed); 
+                BaseFrame.hue_detect_convert(LowerSatur, LowerAngle, UpperAngle); 
 
                 try
                 {
@@ -422,15 +319,9 @@ namespace VeManagerApp
 
                     try
                     {
-                        LeftBlue = double.Parse(textLeftBlue.Text);
-                        RightBlue = double.Parse(textRightBlue.Text);
-                        LeftRed = double.Parse(textLeftRed.Text);
-                        RightRed = double.Parse(textRightRed.Text);
-                        LeftGreen = double.Parse(textLeftGreen.Text);
-                        RightGreen = double.Parse(textRightGreen.Text);
-                        BlueSatur = double.Parse(textBlueSatur.Text);
-                        RedSatur = double.Parse(textRedSatur.Text);
-                        GreenSatur = double.Parse(textGreenSatur.Text);
+                        LowerAngle = double.Parse(TextLowerAngle.Text);
+                        UpperAngle = double.Parse(TextUpperAngle.Text);
+                        LowerSatur = double.Parse(TextLowerSatur.Text);
 
                     }
                     catch (Exception catch_color_border_data)
@@ -497,7 +388,7 @@ namespace VeManagerApp
 
 
                     //hue_detect_convert(saturation percent, hue start angle, hue end angle)
-                    CurrentFrame.hue_detect_convert(RedSatur, LeftRed, RightRed);
+                    CurrentFrame.hue_detect_convert(LowerSatur, LowerAngle, UpperAngle);
                     Vec3d current_point;
                     try
                     {
@@ -726,7 +617,7 @@ namespace VeManagerApp
             TextWrite textWrite = new TextWrite();
 
             config_filename = WriteFileName.Text.ToString();
-            config_texts = textLeftRed.Text + "," + textRightRed.Text + "," + textLeftGreen.Text + "," + textRightGreen.Text + "," + textLeftBlue.Text + "," + textRightBlue.Text + "," + textRedSatur.Text + "," + textGreenSatur.Text + "," + textBlueSatur.Text;
+            config_texts = TextLowerAngle.Text + "," + TextUpperAngle.Text + "," + TextLowerSatur.Text;
             textWrite.Write(config_filename, config_texts);
         }
 
@@ -740,22 +631,18 @@ namespace VeManagerApp
 
             String FileContent = readText.Read(config_filename);
             string[] ParameterArray = FileContent.Split(',');
-            if (ParameterArray.Length != 9)
+            
+            /* left/right/satur */
+            if (ParameterArray.Length != 3)
             {
                 MessageBox.Show("設定ファイルの形式に問題があります", "ファイルエラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             if (FileContent != "")
             {
-                textLeftRed.Text = ParameterArray[0];
-                textRightRed.Text = ParameterArray[1];
-                textLeftGreen.Text = ParameterArray[2];
-                textRightGreen.Text = ParameterArray[3];
-                textLeftBlue.Text = ParameterArray[4];
-                textRightBlue.Text = ParameterArray[5];
-                textRedSatur.Text = ParameterArray[6];
-                textGreenSatur.Text = ParameterArray[7];
-                textBlueSatur.Text = ParameterArray[8];
+                TextLowerAngle.Text = ParameterArray[0];
+                TextUpperAngle.Text = ParameterArray[1];
+                TextLowerSatur.Text = ParameterArray[2];
 
             }
         }

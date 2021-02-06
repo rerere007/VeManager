@@ -236,7 +236,7 @@ namespace VeManagerApp
             }
         }
 
-        public void hue_detect_convert(double saturation_border_percent, double LeftRed, double RightRed)
+        public void hue_detect_convert(double saturation_border_percent, double LowerAngle, double UpperAngle)
         {
             double saturation_border = saturation_border_percent * 0.59567675798 * 255 / 100; //G & Magentaの時
             try
@@ -270,7 +270,7 @@ namespace VeManagerApp
                             angle = angle + 360;
                         }
 
-                        bool color_space_detect_flag = (LeftRed <= angle) && (angle <= RightRed);
+                        bool color_space_detect_flag = (LowerAngle <= angle) && (angle <= UpperAngle);
                         bool saturation_detect_flag = (saturation > saturation_border);
 
                         if (color_space_detect_flag && saturation_detect_flag)
