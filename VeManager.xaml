@@ -61,6 +61,7 @@
         <TextBox x:Name="textGreenSatur" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="268,580,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="84" Background="#FF2DC364" FontFamily="Yu Gothic UI" FontSize="22"/>
         <TextBox x:Name="textRedSatur" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="268,491,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="84" Background="#FFEC4019" FontFamily="Yu Gothic UI" FontSize="22"/>
         <TextBox x:Name="textBlueSatur" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="268,535,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="84" Background="#FF3DE6BF" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <Button x:Name="TrainButton" Content="キャリブレーション" HorizontalAlignment="Left" Margin="970,460,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="train_image" FontFamily="Yu Gothic UI" BorderThickness="2" BorderBrush="Black"/>
 
     </Grid>
 </Window>

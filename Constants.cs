@@ -13,6 +13,8 @@ namespace VeManagerApp
         public const short CINE_IMAGE_TASK = 2;
         public const short HUE_IMAGE_TASK = 3;
         public const short FACE_IMAGE_TASK = 4;
+        public const short TRAIN_IMAGE_TASK = 4;
+
 
         private int current_task_flag = 0;
         private object task_flag_key = new object();

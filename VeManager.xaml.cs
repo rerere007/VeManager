@@ -24,7 +24,7 @@ namespace VeManagerApp
     {
         //Task Flag
         private Constants cont = new Constants();
-        
+
         //FrameDataの取り込み先(上は開発, 下はPC)
         //private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
         private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
@@ -32,7 +32,7 @@ namespace VeManagerApp
         //CaptureStillsのOutput(上は開発PC, 下はPC)
         //private string captured_image_dir = "R:\\Temp\\";
         private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
-        
+
         private string config_filename;
         private string config_texts;
         private String current_app_dir = GetCurrentAppDir();
@@ -150,6 +150,100 @@ namespace VeManagerApp
             HueText.Inlines.Clear();
 
         }
+        private void train_image(object sender, RoutedEventArgs e)
+        {
+            TrainButton.IsEnabled = false;
+            double train_comp_rate = 0.5;
+            cont.change_task(Constants.TRAIN_IMAGE_TASK);
+
+            try
+            {
+
+                while (cont.getCurrentTask() == Constants.TRAIN_IMAGE_TASK)
+                {
+                    DateTime dt = DateTime.Now;
+                    String current_image_name = dt.ToString("yyyy_MM_dd-HH_mm_ss_fff");
+                    String train_image_path = resource_dir + current_image_name + ".png";
+                    FrameData fd;
+
+                    String current_image_path;
+
+                    try
+                    {
+                        current_image_path = captured_image_dir + GetNewestFileName(captured_image_dir);
+                    }
+                    catch (Exception get_name_error)
+                    {
+                        Console.WriteLine(get_name_error);
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    try
+                    {
+                        fd = new FrameData(current_image_path);
+
+                    }
+                    catch (Exception opencv_read_error)
+                    {
+                        Console.WriteLine(opencv_read_error);
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    try
+                    {
+                        fd.ResizeFrame(train_comp_rate);
+
+                    }
+                    catch (Exception opencv_resize_error)
+                    {
+                        Console.WriteLine(opencv_resize_error);
+                        DoEvents();
+                        continue;
+
+                    }
+
+                    try
+                    {
+                        fd.WriteFrame(train_image_path);
+
+                    }
+                    catch (Exception opencv_write_error)
+                    {
+                        Console.WriteLine(opencv_write_error);
+                        DoEvents();
+                        continue;
+
+                    }
+
+
+
+
+                    //lock less bitmap
+                    this.MainImage.Source = fd.ReadWriteableBitmap(train_image_path);
+                    DoEvents();
+
+                }
+            }
+            catch
+            {
+                throw;
+
+            }
+            finally
+            {
+                TrainButton.IsEnabled = true;
+                cont.init();
+                DoEvents();
+
+            }
+
+
+        }
+
 
         /* HUE Detectで彩度と色相範囲を用いて抽出し、Gamma補正をかけつつ色を比較 */
         private void hue_image(object sender, RoutedEventArgs e)
