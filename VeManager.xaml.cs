@@ -1,6 +1,8 @@
 ﻿using OpenCvSharp; //OpenCvSharp4.windows
 using Reactive.Bindings;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -157,7 +159,6 @@ namespace VeManagerApp
             HueButton.IsEnabled = false;
             double hue_comp_rate = 0.5;
             double Ysig_range = 20.0; //Y信号%ずれを許容する範囲
-            double similar_border = 70; //類似度を許容する範囲
             double conv_percent_to_sig = 0.39215686274;
 
             DateTime dt = DateTime.Now;
@@ -165,11 +166,16 @@ namespace VeManagerApp
             FileStream exe_time_stream = File.Open(exe_time, FileMode.OpenOrCreate);
             StreamWriter exe_stream_writer = new StreamWriter(exe_time_stream, System.Text.Encoding.UTF8);
 
+            /* Train Frame Number */
+            int train_frame_num = 100;
+            int train_count_num = 0;
+            List<double> train_distance_list = new List<double>();
+            double max_avg_partial_distance = 0;
+            double similarity_border = 0.2; //類似度を許容する範囲(from 0 to 1) サンプルの上位何%とかから自動計算のがいいかも
 
             double LowerAngle = 0;
             double UpperAngle = 0;
             double LowerSatur = 0;
-
 
             /*
             double ret_b = 0;
@@ -288,6 +294,7 @@ namespace VeManagerApp
 
                 this.BaseImage.Source = BaseFrame.ReadWriteableBitmap(base_image_path);
                 Vec3d base_point;
+
                 try
                 {
                     base_point = BaseFrame.cal_ave_point();
@@ -305,6 +312,8 @@ namespace VeManagerApp
                 HueText.FontSize = 24;
                 HueText.Inlines.Add(new Bold(new Run("基準画像と現在画像の色ズレ")));
                 HueText.TextAlignment = TextAlignment.Center;
+                DoEvents();
+
 
                 while (cont.getCurrentTask() == Constants.HUE_IMAGE_TASK)
                 {
@@ -316,6 +325,7 @@ namespace VeManagerApp
                     FrameData CurrentFrame;
                     double dif_Y_point = 0, dif_X_point = 0, dif_Ysig_point = 0;
                     double dif_R_axis = 0, dif_B_axis = 0;
+                    double similarity_rate = 0;
 
                     try
                     {
@@ -375,6 +385,28 @@ namespace VeManagerApp
                     CurrentFrame.FrameDetectAndCompute();
                     double avg_partial_distance = BaseFrame.CalcDistance(CurrentFrame);
 
+                    if (train_count_num < train_frame_num)
+                    {
+                        train_distance_list.Add(avg_partial_distance);
+                        train_count_num++;
+                        max_avg_partial_distance = train_distance_list.Max();
+                        Thread.Sleep(30);
+                        continue;
+
+                    }
+
+                    if(max_avg_partial_distance == 0)
+                    {
+                        similarity_rate = 1;
+
+                    }
+                    else
+                    {
+                        similarity_rate = (1 - avg_partial_distance / max_avg_partial_distance);
+
+                    }
+
+
                     //類似度計算 
                     /*
                     Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 0 }, new Mat(), current_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
@@ -390,6 +422,7 @@ namespace VeManagerApp
                     //hue_detect_convert(saturation percent, hue start angle, hue end angle)
                     CurrentFrame.hue_detect_convert(LowerSatur, LowerAngle, UpperAngle);
                     Vec3d current_point;
+
                     try
                     {
                         current_point = CurrentFrame.cal_ave_point();//Gamma補正前
@@ -402,10 +435,11 @@ namespace VeManagerApp
                         continue;
 
                     }
+
                     double gamma_lambda = Math.Log(base_point.Item2 / 255) / Math.Log(current_point.Item2 / 255); //補正指数値計算
                     CurrentFrame.gamma_correction(gamma_lambda); //gamma補正
-
                     Vec3d gamma_current_point;
+
                     try
                     {
                         gamma_current_point = CurrentFrame.cal_ave_point();//gammga補正後（輝度平均がそろう）
@@ -435,7 +469,7 @@ namespace VeManagerApp
 
                     try
                     {
-                        if(ViewResult(CurrentFrame, hue_image_path, Ysig_range, similar_border, dif_Y_point, dif_R_axis, dif_B_axis, avg_partial_distance))
+                        if(ViewResult(CurrentFrame, hue_image_path, Ysig_range, similarity_border, dif_Y_point, dif_R_axis, dif_B_axis, similarity_rate))
                         {
                             exe_stream_writer.WriteLine("---------------------------------------------");
                             exe_stream_writer.WriteLine(current_point.Item2 * conv_percent_to_sig);
@@ -482,8 +516,7 @@ namespace VeManagerApp
 
             }
         }
-
-        private bool ViewResult(FrameData CurrentFrame, String hue_image_path, double Ysig_range, double similar_border, double dif_Ysig_point, double dif_R_axis, double dif_B_axis, double avg_partial_distance)
+        private bool ViewResult(FrameData CurrentFrame, String hue_image_path, double Ysig_range, double similarity_border, double dif_Ysig_point, double dif_R_axis, double dif_B_axis, double similarity_rate)
         {
             // ここからは表示
             try
@@ -505,15 +538,15 @@ namespace VeManagerApp
             HueTextYsig.Inlines.Add(new Run("Y信号差分"));
             HueTextYsig.Inlines.Add(dif_Ysig_point.ToString());
             HueTextYsig.Inlines.Add("%\n");
-            HueTextYsig.Inlines.Add(avg_partial_distance.ToString());
+            HueTextYsig.Inlines.Add(similarity_rate.ToString());
             HueTextYsig.Inlines.Add("\n");
 
             HueTextYsig.FontSize = 30;
             HueTextYsig.TextAlignment = TextAlignment.Center;
             HueTextYsig.Foreground = Brushes.White;
 
-            //特徴量距離がボーダー値より離れているかどうかを比較. ボーダー値は事前に３００フレーム程度キャリブレーションする必要がある。
-            if (avg_partial_distance >= similar_border)
+            //特徴量距離がボーダー値より離れているかどうかを比較. ボーダー値は事前に1分程度キャリブレーションする必要がある。
+            if (similarity_rate >= similarity_border)
             {
                 HueTextYsig.Inlines.Add("画角不一致\n");
                 return false;
