@@ -104,6 +104,19 @@ namespace VeManagerApp
 
         }
 
+        public void GaussianBlurToGray()
+        {
+            Cv2.GaussianBlur(gray_frame_mat, gray_frame_mat, new OpenCvSharp.Size(5, 5), 0);
+            
+        }
+
+        public void GaussianBlurToBGR()
+        {
+            Cv2.GaussianBlur(frame_mat, frame_mat, new OpenCvSharp.Size(5, 5), 0);
+
+        }
+
+
         public Mat getFrameMat()
         {
             return this.frame_mat;

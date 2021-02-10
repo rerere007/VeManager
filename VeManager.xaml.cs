@@ -28,12 +28,12 @@ namespace VeManagerApp
         private Constants cont = new Constants();
 
         //FrameDataの取り込み先(上は開発, 下はPC)
-        //private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
-        private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
+        private string resource_dir = "C:\\Users\\dev\\source\\repos\\VeManager\\Resources\\";
+        //private string resource_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Image\\";
 
         //CaptureStillsのOutput(上は開発PC, 下はPC)
-        //private string captured_image_dir = "R:\\Temp\\";
-        private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
+        private string captured_image_dir = "R:\\Temp\\";
+        //private string captured_image_dir = "C:\\Users\\0000526030\\source\\repos\\VeManager\\Resources\\";
 
         private string config_filename;
         private string config_texts;
@@ -167,13 +167,13 @@ namespace VeManagerApp
             StreamWriter exe_stream_writer = new StreamWriter(exe_time_stream, System.Text.Encoding.UTF8);
 
             /* Train Frame Number */
-            int train_frame_num = 500;
+            int train_frame_num = 300;
             int train_count_num = 0;
             List<double> train_distance_list = new List<double>();
             bool list_sort_flag = false;
             double max_avg_partial_distance = 0;
             double min_avg_partial_distance = 0;
-            double similarity_border = 0.5; //サンプルの上位何%か
+            double similarity_border = 0.25; //サンプルの上位何%か
 
             double LowerAngle = 0;
             double UpperAngle = 0;
@@ -268,6 +268,8 @@ namespace VeManagerApp
 
                 }
 
+                //ガウシアンフィルタ
+                BaseFrame.GaussianBlurToGray();
                 //Detect key point
                 BaseFrame.FrameDetectAndCompute();
 
@@ -297,6 +299,8 @@ namespace VeManagerApp
                 this.BaseImage.Source = BaseFrame.ReadWriteableBitmap(base_image_path);
                 Vec3d base_point;
 
+                //ガウシアンフィルタ
+                BaseFrame.GaussianBlurToBGR();
                 try
                 {
                     base_point = BaseFrame.cal_ave_point();
@@ -383,6 +387,8 @@ namespace VeManagerApp
 
                     }
 
+                    //ガウシアンフィルタ
+                    CurrentFrame.GaussianBlurToGray();
                     //Detect key point
                     CurrentFrame.FrameDetectAndCompute();
                     double avg_partial_distance = BaseFrame.CalcDistance(CurrentFrame);
@@ -393,7 +399,7 @@ namespace VeManagerApp
                         train_count_num++;
                         max_avg_partial_distance = train_distance_list.Max();
                         min_avg_partial_distance = train_distance_list.Min();
-                        Thread.Sleep(10);
+                        Thread.Sleep(5);
                         continue;
 
                     }
@@ -401,6 +407,23 @@ namespace VeManagerApp
                     if (!list_sort_flag)
                     {
                         train_distance_list.Sort();
+                        similarity_border = train_distance_list[(int)(train_frame_num * (1 - similarity_border))];
+                        if (similarity_border > max_avg_partial_distance)
+                        {
+                            similarity_border = 0;
+
+                        }
+                        else if (similarity_border <= min_avg_partial_distance)
+                        {
+                            similarity_border = 1;
+
+                        }
+                        else
+                        {
+                            similarity_border = (1 - ((similarity_border - min_avg_partial_distance) / (max_avg_partial_distance - min_avg_partial_distance)));
+
+                        }
+                        similarity_border = Math.Round(similarity_border, 3, MidpointRounding.AwayFromZero);
                         list_sort_flag = true;
 
                     }
@@ -420,6 +443,8 @@ namespace VeManagerApp
                         similarity_rate = (1 - ((avg_partial_distance - min_avg_partial_distance) / (max_avg_partial_distance - min_avg_partial_distance)));
 
                     }
+                    similarity_rate = Math.Round(similarity_rate, 3, MidpointRounding.AwayFromZero);
+
 
                     //類似度計算 
                     /*
@@ -454,6 +479,8 @@ namespace VeManagerApp
                     CurrentFrame.gamma_correction(gamma_lambda); //gamma補正
                     Vec3d gamma_current_point;
 
+                    //ガウシアンフィルタ
+                    CurrentFrame.GaussianBlurToBGR();
                     try
                     {
                         gamma_current_point = CurrentFrame.cal_ave_point();//gammga補正後（輝度平均がそろう）
@@ -479,11 +506,12 @@ namespace VeManagerApp
                     dif_B_axis = Math.Round(dif_B_axis, 1, MidpointRounding.AwayFromZero);
                     dif_Ysig_point = Math.Round(dif_Ysig_point, 1, MidpointRounding.AwayFromZero);
 
+
                     DoEvents();
 
                     try
                     {
-                        if(ViewResult(CurrentFrame, hue_image_path, Ysig_range, similarity_border, dif_Y_point, dif_R_axis, dif_B_axis, similarity_rate))
+                        if(ViewResult(CurrentFrame, hue_image_path, Ysig_range, similarity_border, dif_Ysig_point, dif_R_axis, dif_B_axis, similarity_rate))
                         {
                             exe_stream_writer.WriteLine("---------------------------------------------");
                             exe_stream_writer.WriteLine(current_point.Item2 * conv_percent_to_sig);
@@ -549,11 +577,14 @@ namespace VeManagerApp
             HueTextRed.Inlines.Clear();
             HueTextBlue.Inlines.Clear();
 
-            HueTextYsig.Inlines.Add(new Run("Y信号差分"));
+            HueTextYsig.Inlines.Add(new Run("補正後Y信号差分"));
             HueTextYsig.Inlines.Add(dif_Ysig_point.ToString());
             HueTextYsig.Inlines.Add("%\n");
+            HueTextYsig.Inlines.Add(new Run("ボーダー"));
+            HueTextYsig.Inlines.Add(similarity_border.ToString());
+            HueTextYsig.Inlines.Add("%\n");
             HueTextYsig.Inlines.Add(similarity_rate.ToString());
-            HueTextYsig.Inlines.Add("\n");
+            HueTextYsig.Inlines.Add("%\n");
 
             HueTextYsig.FontSize = 30;
             HueTextYsig.TextAlignment = TextAlignment.Center;

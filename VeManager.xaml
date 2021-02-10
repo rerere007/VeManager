@@ -30,13 +30,13 @@
         <TextBlock x:Name="HueTextRed" HorizontalAlignment="Left" Margin="942,279,-3,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
         <TextBlock x:Name="HueTextBlue" HorizontalAlignment="Left" Margin="942,359,-3,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
         <TextBlock x:Name="HueText" HorizontalAlignment="Left" Margin="942,221,-3,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="358" FontFamily="Yu Gothic UI"/>
-        <TextBlock x:Name="HueTextYsig" HorizontalAlignment="Left" Margin="689,283,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="172" Width="337" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextYsig" HorizontalAlignment="Left" Margin="689,232,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="223" Width="337" FontFamily="Yu Gothic UI"/>
 
         <Image x:Name="BaseImage" HorizontalAlignment="Left" Height="159" Margin="700,68,0,0" VerticalAlignment="Top" Width="274"/>
         <TextBlock x:Name="BaseText" HorizontalAlignment="Left" Margin="700,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="165" FontSize="36" FontFamily="Yu Gothic UI" Background="White"><Run Background="#FFFFFFFD" Text="ベース映像"/></TextBlock>
         <TextBlock x:Name="CurrentText" HorizontalAlignment="Left" Margin="54,7,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="186" FontSize="36" FontFamily="Yu Gothic UI" Background="White"><Run Background="White" Text="現在の映像"/></TextBlock>
 
-        <TextBox x:Name="TextLowerAngle" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="392,580,0,0" TextWrapping="Wrap" Text="120" VerticalAlignment="Top" Width="84" Background="#FFEC4019" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="TextLowerAngle" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="392,580,0,0" TextWrapping="Wrap" Text="150" VerticalAlignment="Top" Width="84" Background="#FFEC4019" FontFamily="Yu Gothic UI" FontSize="22"/>
         <TextBox x:Name="TextUpperAngle" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="571,580,0,0" TextWrapping="Wrap" Text="270" VerticalAlignment="Top" Width="84" Background="#FFE8401A" FontFamily="Yu Gothic UI" FontSize="22"/>
         <Button Content="設定を保存" HorizontalAlignment="Left" Margin="757,581,0,0" VerticalAlignment="Top" Width="90" Click="Write_Button" FontFamily="Yu Gothic UI" Height="30" BorderThickness="3" />
         <Button Content="設定を読み出し" HorizontalAlignment="Left" Margin="955,582,0,0" VerticalAlignment="Top" Width="90" Click="Read_Button" FontFamily="Yu Gothic UI" Height="30" BorderThickness="3" />
@@ -50,7 +50,7 @@
         <Label Content="&lt;色相&lt;" HorizontalAlignment="Left" Margin="492,580,0,0" VerticalAlignment="Top" Width="81" FontFamily="Yu Gothic UI" FontSize="16"/>
 
         <Button x:Name="HueButton" Content="色差分析" HorizontalAlignment="Left" Margin="825,460,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="hue_image" FontFamily="Yu Gothic UI" BorderThickness="3" />
-        <TextBox x:Name="TextLowerSatur" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="277,581,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="84" Background="#FFEC4019" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBox x:Name="TextLowerSatur" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="277,581,0,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top" Width="84" Background="#FFEC4019" FontFamily="Yu Gothic UI" FontSize="22"/>
 
     </Grid>
 </Window>
