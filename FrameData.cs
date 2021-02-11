@@ -286,7 +286,7 @@ namespace VeManagerApp
                         }
 
                         bool color_space_detect_flag = (LowerAngle <= angle) && (angle <= UpperAngle);
-                        bool saturation_detect_flag = (saturation > saturation_border);
+                        bool saturation_detect_flag = (saturation >= saturation_border);
 
                         if (color_space_detect_flag && saturation_detect_flag)
                         {
