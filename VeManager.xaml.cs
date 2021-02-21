@@ -507,6 +507,9 @@ namespace VeManagerApp
                     dif_Ysig_point = Math.Round(dif_Ysig_point, 1, MidpointRounding.AwayFromZero);
 
 
+
+
+
                     DoEvents();
 
                     try
