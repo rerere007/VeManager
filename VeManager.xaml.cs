@@ -100,6 +100,7 @@ namespace VeManagerApp
                     }
                     catch (Exception opencv_resize_error)
                     {
+                        Console.WriteLine("頻発 Resize エラー");
                         Console.WriteLine(opencv_resize_error);
                         DoEvents();
                         continue;
@@ -153,43 +154,48 @@ namespace VeManagerApp
 
         }
 
+
+        //hist類似度計算tips
+        /*
+        Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 0 }, new Mat(), base_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+        Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 1 }, new Mat(), base_hist_g, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+        Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 2 }, new Mat(), base_hist_r, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
+        */
+        //類似度計算終了
+
+
         /* HUE Detectで彩度と色相範囲を用いて抽出し、Gamma補正をかけつつ色を比較 */
         private void hue_image(object sender, RoutedEventArgs e)
         {
             HueButton.IsEnabled = false;
             double hue_comp_rate = 0.5;
-            double Ysig_range = 20.0; //Y信号%ずれを許容する範囲
+            double Ysig_range = 10.0; //Y信号%ずれを許容する範囲
             double conv_percent_to_sig = 0.39215686274;
 
             DateTime dt = DateTime.Now;
             String exe_time = GetCurrentAppDir() + "\\SystemLog\\" + dt.ToString("yyyy_MM_dd-HH_mm_ss_fff") + ".txt";
             FileStream exe_time_stream = File.Open(exe_time, FileMode.OpenOrCreate);
             StreamWriter exe_stream_writer = new StreamWriter(exe_time_stream, System.Text.Encoding.UTF8);
-
+            
             /* Train Frame Number */
-            int train_frame_num = 300;
+            int train_frame_num = 500;
             int train_count_num = 0;
             List<double> train_distance_list = new List<double>();
             bool list_sort_flag = false;
             double max_avg_partial_distance = 0;
             double min_avg_partial_distance = 0;
-            double similarity_border = 0.25; //サンプルの上位何%か
+            double similarity_border = 0.15; //サンプルの上位何%か
 
+            /* User Parameter */
             double LowerAngle = 0;
             double UpperAngle = 0;
             double LowerSatur = 0;
 
-            /*
-            double ret_b = 0;
-            double ret_g = 0;
-            double ret_r = 0;
-            Mat current_hist_b = new Mat();
-            Mat current_hist_g = new Mat();
-            Mat current_hist_r = new Mat();
-            Mat base_hist_r = new Mat();
-            Mat base_hist_g = new Mat();
-            Mat base_hist_b = new Mat();
-            */
+            /* 移動平均 */
+            int wma_num = 30;
+            LinkedList<Tuple<double, double>> wma_buffer = new LinkedList<Tuple<double, double>>();
+            int wma_count = 0;
+            bool wma_flag = false;
 
 
             cont.change_task(Constants.HUE_IMAGE_TASK);
@@ -250,6 +256,7 @@ namespace VeManagerApp
                 }
                 catch (Exception opencv_resize_error)
                 {
+                    Console.WriteLine("頻発 Resize エラー");
                     Console.WriteLine(opencv_resize_error);
                     DoEvents();
 
@@ -273,13 +280,6 @@ namespace VeManagerApp
                 //Detect key point
                 BaseFrame.FrameDetectAndCompute();
 
-                //hist類似度計算
-                /*
-                Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 0 }, new Mat(), base_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
-                Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 1 }, new Mat(), base_hist_g, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
-                Cv2.CalcHist(new Mat[] { BaseFrame.getFrameMat() }, new int[] { 2 }, new Mat(), base_hist_r, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
-                */
-                //類似度計算終了
 
                 //Border Saturation Percent
                 BaseFrame.hue_detect_convert(LowerSatur, LowerAngle, UpperAngle); 
@@ -329,9 +329,12 @@ namespace VeManagerApp
                     String hue_image_path = resource_dir + image + ".png";
                     current_image_path = captured_image_dir + GetNewestFileName(captured_image_dir);
                     FrameData CurrentFrame;
-                    double dif_Y_point = 0, dif_X_point = 0, dif_Ysig_point = 0;
-                    double dif_R_axis = 0, dif_B_axis = 0;
+                    double dif_Y_point = 0, dif_X_point = 0;
+                    double dif_R_axis = 0, dif_B_axis = 0, dif_Ysig_point = 0;
                     double similarity_rate = 0;
+
+                    /* 移動平均 */
+                    double R_wma_dif = 0, B_wma_dif = 0;
 
                     try
                     {
@@ -368,6 +371,7 @@ namespace VeManagerApp
                     }
                     catch (Exception current_mat_resize_error)
                     {
+                        Console.WriteLine("頻発 Resize エラー");
                         Console.WriteLine(current_mat_resize_error);
                         DoEvents();
                         continue;
@@ -399,7 +403,15 @@ namespace VeManagerApp
                         train_count_num++;
                         max_avg_partial_distance = train_distance_list.Max();
                         min_avg_partial_distance = train_distance_list.Min();
+
+                        HueTextYsig.Inlines.Clear();
+                        HueTextYsig.Inlines.Add(new Run("Calibration中" + train_count_num.ToString()));
+                        HueTextYsig.FontSize = 30;
+                        HueTextYsig.TextAlignment = TextAlignment.Center;
+                        HueTextYsig.Foreground = Brushes.White;
+                        DoEvents();
                         Thread.Sleep(5);
+
                         continue;
 
                     }
@@ -407,7 +419,10 @@ namespace VeManagerApp
                     if (!list_sort_flag)
                     {
                         train_distance_list.Sort();
-                        similarity_border = train_distance_list[(int)(train_frame_num * (1 - similarity_border))];
+                        int border_pos = (int)(train_frame_num * (double)(1 - similarity_border));
+                        //Console.WriteLine(border_pos);
+                        similarity_border = train_distance_list[border_pos];
+                        //Console.WriteLine(similarity_border);
                         if (similarity_border > max_avg_partial_distance)
                         {
                             similarity_border = 0;
@@ -426,9 +441,10 @@ namespace VeManagerApp
                         similarity_border = Math.Round(similarity_border, 3, MidpointRounding.AwayFromZero);
                         list_sort_flag = true;
 
+
                     }
 
-                    if(avg_partial_distance > max_avg_partial_distance)
+                    if (avg_partial_distance > max_avg_partial_distance)
                     {
                         similarity_rate = 0;
 
@@ -446,22 +462,12 @@ namespace VeManagerApp
                     similarity_rate = Math.Round(similarity_rate, 3, MidpointRounding.AwayFromZero);
 
 
-                    //類似度計算 
-                    /*
-                    Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 0 }, new Mat(), current_hist_b, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
-                    Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 1 }, new Mat(), current_hist_g, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
-                    Cv2.CalcHist(new Mat[] { CurrentFrame.getFrameMat() }, new int[] { 2 }, new Mat(), current_hist_r, 1, new int[] { 256 }, new OpenCvSharp.Rangef[] { new Rangef(0, 256) }, true, false);
-                    ret_b = Math.Round(Cv2.CompareHist(current_hist_b, base_hist_b, 0), 1, MidpointRounding.AwayFromZero) * 100;
-                    ret_g = Math.Round(Cv2.CompareHist(current_hist_g, base_hist_g, 0), 1, MidpointRounding.AwayFromZero) * 100;
-                    ret_r = Math.Round(Cv2.CompareHist(current_hist_r, base_hist_r, 0), 1, MidpointRounding.AwayFromZero) * 100;
-                    */
-                    //類似度計算 終了
-
-
                     //hue_detect_convert(saturation percent, hue start angle, hue end angle)
                     CurrentFrame.hue_detect_convert(LowerSatur, LowerAngle, UpperAngle);
                     Vec3d current_point;
 
+                    //ガウシアンフィルタ
+                    CurrentFrame.GaussianBlurToBGR();
                     try
                     {
                         current_point = CurrentFrame.cal_ave_point();//Gamma補正前
@@ -479,8 +485,6 @@ namespace VeManagerApp
                     CurrentFrame.gamma_correction(gamma_lambda); //gamma補正
                     Vec3d gamma_current_point;
 
-                    //ガウシアンフィルタ
-                    CurrentFrame.GaussianBlurToBGR();
                     try
                     {
                         gamma_current_point = CurrentFrame.cal_ave_point();//gammga補正後（輝度平均がそろう）
@@ -506,27 +510,60 @@ namespace VeManagerApp
                     dif_B_axis = Math.Round(dif_B_axis, 1, MidpointRounding.AwayFromZero);
                     dif_Ysig_point = Math.Round(dif_Ysig_point, 1, MidpointRounding.AwayFromZero);
 
+                    bool Ysig_range_flag = (dif_Ysig_point < -1 * Ysig_range) | (dif_Ysig_point > Ysig_range);
+                    bool similarity_border_flag = (similarity_rate <= similarity_border);
+
+                    if (!similarity_border_flag)
+                    {
+                        if (wma_count >= wma_num)
+                        {
+                            wma_flag = true;
+
+                        }
+                        else
+                        {
+                            wma_count++;
+
+                        }
+
+                        wma_buffer.AddLast(Tuple.Create(dif_R_axis, dif_B_axis));
+                        if (wma_flag)
+                        {
+                            wma_buffer.RemoveFirst();
+                            double R_weight_sum = 0, B_weight_sum = 0;
+                            foreach (var (wma_pair, index) in wma_buffer.Select((pair, index) => (pair, index)))
+                            {
+                                R_wma_dif = R_wma_dif + (index + 1) * wma_pair.Item1;
+                                B_wma_dif = B_wma_dif + (index + 1) * wma_pair.Item2;
+                                R_weight_sum = R_weight_sum + (index + 1);
+                                B_weight_sum = B_weight_sum + (index + 1);
+
+                            }
+                            R_wma_dif = R_wma_dif / R_weight_sum;
+                            B_wma_dif = B_wma_dif / B_weight_sum;
+                            R_wma_dif = Math.Round(R_wma_dif, 1, MidpointRounding.AwayFromZero);
+                            B_wma_dif = Math.Round(B_wma_dif, 1, MidpointRounding.AwayFromZero);
 
 
+                        }
+                    }
 
-
+                    //いったん処理を吐き出す
                     DoEvents();
 
                     try
                     {
-                        if(ViewResult(CurrentFrame, hue_image_path, Ysig_range, similarity_border, dif_Ysig_point, dif_R_axis, dif_B_axis, similarity_rate))
+                        if(ViewResult(CurrentFrame, hue_image_path, Ysig_range_flag, similarity_border, similarity_border_flag, dif_Ysig_point, dif_R_axis, dif_B_axis, similarity_rate, wma_flag, R_wma_dif, B_wma_dif))
                         {
-                            exe_stream_writer.WriteLine("---------------------------------------------");
-                            exe_stream_writer.WriteLine(current_point.Item2 * conv_percent_to_sig);
-                            exe_stream_writer.WriteLine(dif_Ysig_point);
-                            exe_stream_writer.WriteLine(dif_R_axis);
-                            exe_stream_writer.WriteLine(dif_B_axis);
+
+                            string result_string = (current_point.Item2 * conv_percent_to_sig).ToString() + ',' + dif_Ysig_point.ToString() + ',' + dif_R_axis.ToString()+ ',' + dif_B_axis.ToString() + ',' + R_wma_dif.ToString() + ',' + B_wma_dif.ToString();
+                            exe_stream_writer.WriteLine(result_string);
 
                         }
                         else
                         {
                             continue;
-
+                            
                         }
 
                     }
@@ -555,13 +592,15 @@ namespace VeManagerApp
                 HueTextYsig.Inlines.Clear();
                 HueTextRed.Inlines.Clear();
                 HueTextBlue.Inlines.Clear();
+                WmaRed.Inlines.Clear();
+                WmaBlue.Inlines.Clear();
                 cont.init();
                 HueButton.IsEnabled = true;
                 DoEvents();
 
             }
         }
-        private bool ViewResult(FrameData CurrentFrame, String hue_image_path, double Ysig_range, double similarity_border, double dif_Ysig_point, double dif_R_axis, double dif_B_axis, double similarity_rate)
+        private bool ViewResult(FrameData CurrentFrame, String hue_image_path, bool Ysig_range_flag, double similarity_border, bool similarity_border_flag, double dif_Ysig_point, double dif_R_axis, double dif_B_axis, double similarity_rate, bool wma_flag, double R_wma_dif, double B_wma_dif)
         {
             // ここからは表示
             try
@@ -593,8 +632,14 @@ namespace VeManagerApp
             HueTextYsig.TextAlignment = TextAlignment.Center;
             HueTextYsig.Foreground = Brushes.White;
 
-            //特徴量距離がボーダー値より離れているかどうかを比較. ボーダー値は事前に1分程度キャリブレーションする必要がある。
-            if (similarity_rate <= similarity_border)
+            if (Ysig_range_flag)
+            {
+                return false;
+
+            }
+
+            //特徴量距離がボーダー値より離れているかどうかを比較
+            if (similarity_border_flag)
             {
                 HueTextYsig.Inlines.Add("画角不一致\n");
                 return false;
@@ -602,16 +647,6 @@ namespace VeManagerApp
             } else
             {
                 HueTextYsig.Inlines.Add("画角一致\n");
-
-            }
-
-            if ((dif_Ysig_point < -1 * Ysig_range) | (dif_Ysig_point > Ysig_range))
-            {
-                return false;
-
-            }
-            else
-            {
 
                 HueTextRed.Inlines.Add(new Run("赤色ずれ "));
                 HueTextRed.Inlines.Add(dif_R_axis.ToString());
@@ -627,6 +662,22 @@ namespace VeManagerApp
                 HueTextBlue.TextAlignment = TextAlignment.Center;
                 HueTextBlue.Foreground = Brushes.Navy;
 
+                if (wma_flag)
+                {
+                    WmaRed.Inlines.Clear();
+                    WmaBlue.Inlines.Clear();
+
+                    WmaRed.Inlines.Add(new Run("赤加重移動平均 " + R_wma_dif.ToString() + "%"));
+                    WmaRed.FontSize = 24;
+                    WmaRed.TextAlignment = TextAlignment.Center;
+                    WmaRed.Foreground = Brushes.Red;
+
+                    WmaBlue.Inlines.Add(new Run("青加重移動平均 "+B_wma_dif.ToString()+"%"));
+                    WmaBlue.FontSize = 24;
+                    WmaBlue.TextAlignment = TextAlignment.Center;
+                    WmaBlue.Foreground = Brushes.Navy;
+
+                }
                 return true;
 
             }

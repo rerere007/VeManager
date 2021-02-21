@@ -30,7 +30,7 @@
         <TextBlock x:Name="HueTextRed" HorizontalAlignment="Left" Margin="942,279,-3,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
         <TextBlock x:Name="HueTextBlue" HorizontalAlignment="Left" Margin="942,359,-3,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
         <TextBlock x:Name="HueText" HorizontalAlignment="Left" Margin="942,221,-3,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="358" FontFamily="Yu Gothic UI"/>
-        <TextBlock x:Name="HueTextYsig" HorizontalAlignment="Left" Margin="689,232,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="223" Width="337" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="HueTextYsig" HorizontalAlignment="Left" Margin="689,260,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="195" Width="337" FontFamily="Yu Gothic UI"/>
 
         <Image x:Name="BaseImage" HorizontalAlignment="Left" Height="159" Margin="700,68,0,0" VerticalAlignment="Top" Width="274"/>
         <TextBlock x:Name="BaseText" HorizontalAlignment="Left" Margin="700,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="54" Width="165" FontSize="36" FontFamily="Yu Gothic UI" Background="White"><Run Background="#FFFFFFFD" Text="ベース映像"/></TextBlock>
@@ -51,6 +51,8 @@
 
         <Button x:Name="HueButton" Content="色差分析" HorizontalAlignment="Left" Margin="825,460,0,0" VerticalAlignment="Top" Width="114" Height="46" Click="hue_image" FontFamily="Yu Gothic UI" BorderThickness="3" />
         <TextBox x:Name="TextLowerSatur" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="textBox_PreviewTextInput" CommandManager.PreviewExecuted="textBox_PreviewExecuted" HorizontalAlignment="Left" Height="30" Margin="277,581,0,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top" Width="84" Background="#FFEC4019" FontFamily="Yu Gothic UI" FontSize="22"/>
+        <TextBlock x:Name="WmaRed" HorizontalAlignment="Left" Margin="166,439,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
+        <TextBlock x:Name="WmaBlue" HorizontalAlignment="Left" Margin="166,491,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="52" Width="358" FontFamily="Yu Gothic UI"/>
 
     </Grid>
 </Window>
