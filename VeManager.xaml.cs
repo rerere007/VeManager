@@ -300,7 +300,7 @@ namespace VeManagerApp
                 Vec3d base_point;
 
                 //ガウシアンフィルタ
-                BaseFrame.GaussianBlurToBGR();
+                //BaseFrame.GaussianBlurToBGR();
                 try
                 {
                     base_point = BaseFrame.cal_ave_point();
@@ -467,7 +467,7 @@ namespace VeManagerApp
                     Vec3d current_point;
 
                     //ガウシアンフィルタ
-                    CurrentFrame.GaussianBlurToBGR();
+                    //CurrentFrame.GaussianBlurToBGR();
                     try
                     {
                         current_point = CurrentFrame.cal_ave_point();//Gamma補正前
