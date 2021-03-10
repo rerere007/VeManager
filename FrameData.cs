@@ -103,6 +103,25 @@ namespace VeManagerApp
             }
 
         }
+        public void DumpPixel(int x, int y)
+        {
+            var px = this.frame_mat.Get<Vec3b>(y, x);
+            double b_px = (double) px[0];
+            double g_px = (double) px[1];
+            double r_px = (double) px[2];
+            double linear_y_sig = 0.2126 * r_px + 0.7152 * g_px + 0.0722 * b_px;
+            double cr = 0.6350 * (r_px - linear_y_sig); //0.6350 * R_Y
+            double cb = 0.5389 * (b_px - linear_y_sig); //0.5389 * B_Y
+            linear_y_sig = linear_y_sig * 0.39215686274;
+            //CB Red =  15.9524705880279,95.453962,-21.38290532 RGB = (191, 0, 1)
+            //CB Blue = 5.40792156855715,-8.756777,95.49836122 RGB = (0, 0, 191)
+            //Xr = -21.38290532, Yr = 95.453962
+            //Xb = 95.49836122, Yb = -8.756777
+
+            Console.WriteLine(r_px.ToString() + "," + g_px.ToString() + "," + b_px.ToString());
+            Console.WriteLine(linear_y_sig.ToString() + "," + cr.ToString() + "," + cb.ToString());
+
+        }
 
         public void GaussianBlurToGray()
         {

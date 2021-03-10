@@ -122,6 +122,7 @@ namespace VeManagerApp
 
                     //lock less bitmap
                     this.MainImage.Source = fd.ReadWriteableBitmap(show_image_path);
+                    fd.DumpPixel(10, 10);
                     DoEvents();
 
                 }
@@ -171,6 +172,12 @@ namespace VeManagerApp
             double hue_comp_rate = 0.5;
             double Ysig_range = 10.0; //Y信号%ずれを許容する範囲
             double conv_percent_to_sig = 0.39215686274;
+            double rx = -21.38290532;
+            double ry = 95.453962;
+            double bx = 95.49836122;
+            double by = -8.756777;
+            //CB Red =  15.9524705880279,95.453962,-21.38290532 RGB = (191, 0, 1)
+            //CB Blue = 5.40792156855715,-8.756777,95.49836122 RGB = (0, 0, 191)
 
             DateTime dt = DateTime.Now;
             String exe_time = GetCurrentAppDir() + "\\SystemLog\\" + dt.ToString("yyyy_MM_dd-HH_mm_ss_fff") + ".txt";
@@ -502,8 +509,16 @@ namespace VeManagerApp
                     dif_Y_point = (gamma_current_point.Item0 - base_point.Item0); // Y軸値 εY
                     dif_Ysig_point = (gamma_current_point.Item2 - base_point.Item2); // Ysig値 εY
 
-                    dif_R_axis = (10.9170305677 * dif_Y_point - dif_X_point) / 1421.13725738 * 100; //Red軸 %表記
-                    dif_B_axis = (4.36406800964 * dif_X_point + dif_Y_point) / 568.097671229 * 100; //Blue軸 %表記
+                    /* ベクトル分解＆正規化 */
+                    double red_scala = (dif_X_point * by - dif_Y_point * bx) / (rx * by - ry * bx);
+                    double blue_scala = (dif_X_point * ry - dif_Y_point * rx) / (bx * ry - rx * by);
+                    dif_R_axis = red_scala * 100;
+                    dif_B_axis = blue_scala * 100;
+
+                    //20210310 従来
+                    //dif_R_axis = (10.9170305677 * dif_Y_point - dif_X_point) / 1421.13725738 * 100; //Red軸 %表記
+                    //dif_B_axis = (4.36406800964 * dif_X_point + dif_Y_point) / 568.097671229 * 100; //Blue軸 %表記
+
                     dif_Ysig_point = dif_Ysig_point * conv_percent_to_sig; //Ysig dif % 映像信号レベル
 
                     dif_R_axis = Math.Round(dif_R_axis, 1, MidpointRounding.AwayFromZero);
