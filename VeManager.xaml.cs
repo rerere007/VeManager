@@ -122,7 +122,7 @@ namespace VeManagerApp
 
                     //lock less bitmap
                     this.MainImage.Source = fd.ReadWriteableBitmap(show_image_path);
-                    fd.DumpPixel(10, 10);
+                    //fd.DumpPixel(10, 10);
                     DoEvents();
 
                 }

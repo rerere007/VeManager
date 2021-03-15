@@ -115,3 +115,4 @@ C:\Users\dev\source\repos\VeManager\obj\Release\VeManagerApp.csproj.CoreCompileI
 C:\Users\dev\source\repos\VeManager\obj\Release\VeManagerApp.csproj.CopyComplete
 C:\Users\dev\source\repos\VeManager\obj\Release\VeManagerApp.exe
 C:\Users\dev\source\repos\VeManager\obj\Release\VeManagerApp.pdb
+C:\Users\dev\source\repos\VeManager\obj\Release\VeManagerApp.csprojAssemblyReference.cache
